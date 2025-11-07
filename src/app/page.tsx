@@ -3,9 +3,10 @@ import { db } from "@/lib/db";
 import { getServerSession } from "next-auth";
 import { addTask } from "./actions";
 import { AuthButtons } from "@/components/AuthButtons";
+import { authOptions } from "@/lib/auth";
 
 export default async function Home() {
-  const session = await getServerSession();
+  const session = await getServerSession(authOptions);
 
   let tasks: { id: string; title: string; done: boolean }[] = [];
   if (session?.user?.id) {
@@ -34,13 +35,18 @@ export default async function Home() {
       </div>
 
       {session && (
-        <form action={addTask} className="flex gap-2">
+        <form action={addTask} method="POST" className="flex gap-2">
           <input
             name="title"
             placeholder="New task title…"
             className="flex-1 rounded border px-3 py-2"
           />
-          <button className="rounded bg-black px-4 py-2 text-white">Add</button>
+          <button
+            type="submit"
+            className="rounded bg-black px-4 py-2 text-white"
+          >
+            Add
+          </button>
         </form>
       )}
 
