@@ -8,6 +8,7 @@ import { authOptions } from "@/lib/auth";
 export default async function Home() {
   const session = await getServerSession(authOptions);
 
+  //fix this
   let tasks: { id: string; title: string; done: boolean }[] = [];
   if (session?.user?.id) {
     tasks = await db.task.findMany({
