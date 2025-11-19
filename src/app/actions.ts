@@ -4,6 +4,7 @@
 import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { getServerSession } from "next-auth";
+import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 export async function addTask(formData: FormData) {
@@ -19,4 +20,6 @@ export async function addTask(formData: FormData) {
   await db.task.create({
     data: { title, userId: session.user.id },
   });
+
+      revalidatePath("/");
 }

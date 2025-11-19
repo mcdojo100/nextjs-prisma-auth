@@ -4,6 +4,7 @@ import { getServerSession } from "next-auth";
 import { addTask } from "./actions";
 import { AuthButtons } from "@/components/AuthButtons";
 import { authOptions } from "@/lib/auth";
+import { Paper } from "@mui/material";
 
 export default async function Home() {
   const session = await getServerSession(authOptions);
@@ -53,8 +54,8 @@ export default async function Home() {
 
       <ul className="space-y-2">
         {tasks.map((t) => (
-          <li key={t.id} className="rounded border bg-white px-3 py-2">
-            {t.title}
+          <li key={t.id}>
+            <Paper sx={{ p: 2, bgcolor: "background.paper" }}>{t.title}</Paper>
           </li>
         ))}
       </ul>
