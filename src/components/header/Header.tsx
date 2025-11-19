@@ -12,10 +12,19 @@ import {
 import { useEffect, useState } from "react";
 import { Session } from "next-auth";
 import { signIn, signOut } from "next-auth/react";
+import { usePathname, useRouter } from "next/navigation";
+
+const routes = [
+  { label: "Home", path: "/" },
+  { label: "Events", path: "/events" },
+  { label: "Logic", path: "/logic" },
+];
 
 const Header = ({ session }: { session: Session | null }) => {
   const [value, setValue] = useState(0);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const router = useRouter();
+  const pathname = usePathname();
 
   useEffect(() => {
     setIsLoggedIn(session?.user ? true : false);
@@ -29,14 +38,14 @@ const Header = ({ session }: { session: Session | null }) => {
     setValue(newValue);
   };
 
+  const currentTab = routes.findIndex((route) => route.path === pathname);
+
   return (
     <AppBar position="static">
       <Toolbar>
         <Typography
           variant="h6"
           noWrap
-          component="a"
-          href="#app-bar-with-responsive-menu"
           sx={{
             mr: 2,
             display: { xs: "none", md: "flex" },
@@ -52,13 +61,18 @@ const Header = ({ session }: { session: Session | null }) => {
         <Divider orientation="vertical" flexItem sx={{ mx: 2 }} />
         <Box sx={{ flexGrow: 1, display: { xs: "none", md: "flex" } }}>
           <Tabs
-            value={value}
+            value={currentTab === -1 ? false : currentTab}
             onChange={handleChange}
-            aria-label="basic tabs example"
           >
-            <Tab label="Item One" />
-            <Tab label="Item Two" />
-            <Tab label="Item Three" />
+            {routes.map((route, index) => (
+              <Tab
+                key={route.path}
+                label={route.label}
+                onClick={() => {
+                  router.push(route.path);
+                }}
+              />
+            ))}
           </Tabs>
         </Box>
         <Divider orientation="vertical" flexItem sx={{ mx: 2 }} />

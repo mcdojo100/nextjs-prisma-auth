@@ -21,21 +21,6 @@ export default async function Home() {
 
   return (
     <main className="mx-auto max-w-2xl p-6 space-y-6">
-      <h1 className="text-2xl font-bold">Next.js + Prisma + Auth</h1>
-
-      <div className="flex items-center justify-between">
-        <div>
-          {session ? (
-            <p className="text-sm">
-              Signed in as <b>{session.user?.email ?? session.user?.name}</b>
-            </p>
-          ) : (
-            <p className="text-sm">You’re not signed in.</p>
-          )}
-        </div>
-        <AuthButtons />
-      </div>
-
       {session && (
         <form action={addTask} method="POST" className="flex gap-2">
           <input
