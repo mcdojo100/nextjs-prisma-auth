@@ -1,5 +1,6 @@
 // app/events/layout.tsx
 import { Box, Button, Typography } from "@mui/material";
+import NewEventButton from "./NewEventButton";
 
 export default function EventsLayout({
   children,
@@ -17,8 +18,7 @@ export default function EventsLayout({
         }}
       >
         <Typography variant="h4">Events</Typography>
-
-        <Button variant="contained">+ Create Event</Button>
+        <NewEventButton />
       </Box>
       {children}
     </Box>
