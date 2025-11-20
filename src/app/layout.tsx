@@ -2,7 +2,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import Providers from "./providers";
-import { Box } from "@mui/material";
+import { Box, Container } from "@mui/material";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import Header from "@/components/header/Header";
@@ -25,14 +25,29 @@ export default async function RootLayout({
         <Providers>
           <Box
             sx={{
-              height: "100vh",
-              width: "100vw",
+              minHeight: "100vh",
               bgcolor: "background.default",
               color: "text.primary",
+              display: "flex",
+              flexDirection: "column",
             }}
           >
             <Header session={session} />
-            {children}
+            <Container
+              maxWidth="md"
+              sx={{
+                flexGrow: 1, // ⬅ allows it to fill vertical space
+                overflowY: "auto", // ⬅ optional (scroll inside container)
+                p: 3,
+                my: 3,
+                border: "1px solid",
+                borderColor: "divider",
+                borderRadius: 2,
+                bgcolor: "background.paper",
+              }}
+            >
+              {children}
+            </Container>
           </Box>
         </Providers>
       </body>
