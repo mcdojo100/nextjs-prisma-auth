@@ -12,5 +12,5 @@ export default function Logic() {
   if (!session) {
     redirect("/");
   }
-  return <div>Logic Page</div>;
+  return <div>Logic Page - To Do</div>;
 }

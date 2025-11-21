@@ -1,4 +1,5 @@
 "use client";
+
 import {
   AppBar,
   Box,
@@ -9,7 +10,6 @@ import {
   Toolbar,
   Typography,
 } from "@mui/material";
-import { useEffect, useState } from "react";
 import { Session } from "next-auth";
 import { signIn, signOut } from "next-auth/react";
 import { usePathname, useRouter } from "next/navigation";
@@ -21,24 +21,19 @@ const routes = [
 ];
 
 const Header = ({ session }: { session: Session | null }) => {
-  const [value, setValue] = useState(0);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
 
-  useEffect(() => {
-    setIsLoggedIn(session?.user ? true : false);
-  }, [session]);
+  const isLoggedIn = !!session?.user;
 
-  useEffect(() => {
-    console.log("Session changed:", session);
-  }, [session]);
+  // Only show Events + Logic when logged in
+  const visibleRoutes = isLoggedIn
+    ? routes
+    : routes.filter((route) => route.path === "/");
 
-  const handleChange = (event: React.SyntheticEvent, newValue: number) => {
-    setValue(newValue);
-  };
-
-  const currentTab = routes.findIndex((route) => route.path === pathname);
+  const currentTab = visibleRoutes.findIndex(
+    (route) => route.path === pathname
+  );
 
   return (
     <AppBar position="static">
@@ -58,24 +53,25 @@ const Header = ({ session }: { session: Session | null }) => {
         >
           APP NAME
         </Typography>
+
         <Divider orientation="vertical" flexItem sx={{ mx: 2 }} />
+
         <Box sx={{ flexGrow: 1, display: { xs: "none", md: "flex" } }}>
           <Tabs
             value={currentTab === -1 ? false : currentTab}
-            onChange={handleChange}
+            onChange={(_, newValue) => {
+              const route = visibleRoutes[newValue];
+              if (route) router.push(route.path);
+            }}
           >
-            {routes.map((route, index) => (
-              <Tab
-                key={route.path}
-                label={route.label}
-                onClick={() => {
-                  router.push(route.path);
-                }}
-              />
+            {visibleRoutes.map((route) => (
+              <Tab key={route.path} label={route.label} />
             ))}
           </Tabs>
         </Box>
+
         <Divider orientation="vertical" flexItem sx={{ mx: 2 }} />
+
         <Box sx={{ flexGrow: 0 }}>
           <Button
             variant="text"

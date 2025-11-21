@@ -1,49 +1,42 @@
-// src/app/page.tsx
-import { db } from "@/lib/db";
+// app/page.tsx
 import { getServerSession } from "next-auth";
-import { addTask } from "./actions";
-import { AuthButtons } from "@/components/AuthButtons";
 import { authOptions } from "@/lib/auth";
-import { Paper } from "@mui/material";
+import { Box, Button, Typography } from "@mui/material";
+import Link from "next/link";
+import { SignInButton } from "../components/SignInButton";
 
-export default async function Home() {
+export default async function HomePage() {
   const session = await getServerSession(authOptions);
 
-  //fix this
-  let tasks: { id: string; title: string; done: boolean }[] = [];
-  if (session?.user?.id) {
-    tasks = await db.task.findMany({
-      where: { userId: session.user.id },
-      orderBy: { createdAt: "desc" },
-      select: { id: true, title: true, done: true },
-    });
-  }
-
   return (
-    <main className="mx-auto max-w-2xl p-6 space-y-6">
-      {session && (
-        <form action={addTask} method="POST" className="flex gap-2">
-          <input
-            name="title"
-            placeholder="New task title…"
-            className="flex-1 rounded border px-3 py-2"
-          />
-          <button
-            type="submit"
-            className="rounded bg-black px-4 py-2 text-white"
-          >
-            Add
-          </button>
-        </form>
-      )}
+    <Box
+      sx={{
+        py: 8,
+        textAlign: "center",
+      }}
+    >
+      <Typography variant="h3" sx={{ mb: 2 }}>
+        App Name
+      </Typography>
 
-      <ul className="space-y-2">
-        {tasks.map((t) => (
-          <li key={t.id}>
-            <Paper sx={{ p: 2, bgcolor: "background.paper" }}>{t.title}</Paper>
-          </li>
-        ))}
-      </ul>
-    </main>
+      <Typography
+        variant="h6"
+        color="text.secondary"
+        sx={{ maxWidth: 600, mx: "auto", mb: 4 }}
+      >
+        This is a description of the app and what it does. Ginger, help me come
+        up with an app name and a description to put here.
+      </Typography>
+
+      {session?.user ? (
+        <Link href="/events">
+          <Button variant="contained" sx={{ textTransform: "none", mt: 1 }}>
+            Go to My Events
+          </Button>
+        </Link>
+      ) : (
+        <SignInButton />
+      )}
+    </Box>
   );
 }

@@ -12,6 +12,7 @@ import {
   TextField,
 } from "@mui/material";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 type NewEventDialogProps = {
   open: boolean;
@@ -30,6 +31,7 @@ export default function NewEventDialog({
   const [importance, setImportance] = useState<number>(5);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
 
   const handleClose = () => {
     if (isSubmitting) return;
@@ -67,6 +69,7 @@ export default function NewEventDialog({
       setImportance(5);
 
       onClose();
+      router.refresh();
     } catch (err) {
       setError("Something went wrong. Please try again.");
     } finally {
