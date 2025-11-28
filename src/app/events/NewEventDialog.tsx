@@ -10,6 +10,12 @@ import {
   Slider,
   Stack,
   TextField,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  Checkbox,
+  ListItemText,
 } from "@mui/material";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -29,6 +35,9 @@ export default function NewEventDialog({
   const [description, setDescription] = useState("");
   const [intensity, setIntensity] = useState<number>(5);
   const [importance, setImportance] = useState<number>(5);
+  const [physicalSensations, setPhysicalSensations] = useState<string[]>([]);
+  const [emotions, setEmotions] = useState<string[]>([]);
+  const [category, setCategory] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
@@ -47,12 +56,15 @@ export default function NewEventDialog({
       const res = await fetch("/api/events", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          title,
-          description,
-          intensity,
-          importance,
-        }),
+          body: JSON.stringify({
+            title,
+            description,
+            intensity,
+            importance,
+            emotions,
+            category,
+            physicalSensations,
+          }),
       });
 
       if (!res.ok) {
@@ -67,6 +79,9 @@ export default function NewEventDialog({
       setDescription("");
       setIntensity(5);
       setImportance(5);
+      setEmotions([]);
+      setPhysicalSensations([]);
+      setCategory("");
 
       onClose();
       router.refresh();
@@ -101,46 +116,142 @@ export default function NewEventDialog({
               minRows={3}
             />
 
-            <Box>
-              <Box
-                sx={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  mb: 0.5,
-                  fontSize: 14,
-                }}
-              >
-                <span>Intensity</span>
-                <span>{intensity}</span>
+            <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" }, gap: 2 }}>
+              <Box>
+                <Box
+                  sx={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    mb: 0.5,
+                    fontSize: 14,
+                  }}
+                >
+                  <span>Intensity</span>
+                  <span>{intensity}</span>
+                </Box>
+                <Slider
+                  value={intensity}
+                  onChange={(_, value) => setIntensity(value as number)}
+                  step={1}
+                  min={1}
+                  max={10}
+                />
               </Box>
-              <Slider
-                value={intensity}
-                onChange={(_, value) => setIntensity(value as number)}
-                step={1}
-                min={1}
-                max={10}
-              />
+
+              <Box>
+                <Box
+                  sx={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    mb: 0.5,
+                    fontSize: 14,
+                  }}
+                >
+                  <span>Importance</span>
+                  <span>{importance}</span>
+                </Box>
+                <Slider
+                  value={importance}
+                  onChange={(_, value) => setImportance(value as number)}
+                  step={1}
+                  min={1}
+                  max={10}
+                />
+              </Box>
             </Box>
 
             <Box>
-              <Box
-                sx={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  mb: 0.5,
-                  fontSize: 14,
-                }}
-              >
-                <span>Importance</span>
-                <span>{importance}</span>
-              </Box>
-              <Slider
-                value={importance}
-                onChange={(_, value) => setImportance(value as number)}
-                step={1}
-                min={1}
-                max={10}
-              />
+              <FormControl fullWidth>
+                <InputLabel id="emotions-label">Emotions</InputLabel>
+                <Select
+                  labelId="emotions-label"
+                  multiple
+                  value={emotions}
+                  onChange={(e) =>
+                    setEmotions(
+                      typeof e.target.value === "string"
+                        ? e.target.value.split(",")
+                        : (e.target.value as string[])
+                    )
+                  }
+                  renderValue={(selected) =>
+                    (selected as string[]).length ? (selected as string[]).join(", ") : "None"
+                  }
+                  label="Emotions"
+                >
+                  {[
+                    "anger",
+                    "sadness",
+                    "anxiety",
+                    "numbness",
+                    "confusion",
+                    "shame",
+                    "hope",
+                    "calm",
+                  ].map((emo) => (
+                    <MenuItem key={emo} value={emo}>
+                      <Checkbox checked={emotions.includes(emo)} />
+                      <ListItemText primary={emo[0].toUpperCase() + emo.slice(1)} />
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Box>
+
+            <Box>
+              <FormControl fullWidth>
+                <InputLabel id="physical-sensations-label">Physical Sensations</InputLabel>
+                <Select
+                  labelId="physical-sensations-label"
+                  multiple
+                  value={physicalSensations}
+                  onChange={(e) =>
+                    setPhysicalSensations(
+                      typeof e.target.value === "string"
+                        ? e.target.value.split(",")
+                        : (e.target.value as string[])
+                    )
+                  }
+                  renderValue={(selected) =>
+                    (selected as string[]).length ? (selected as string[]).join(", ") : "None"
+                  }
+                  label="Physical Sensations"
+                >
+                  {[
+                    "Tight Chest",
+                    "Butterflies",
+                    "Headache",
+                    "Warmth",
+                    "Shaky",
+                    "Tension",
+                    "Shortness of Breath",
+                    "Fatigue",
+                  ].map((sensation) => (
+                    <MenuItem key={sensation} value={sensation}>
+                      <Checkbox checked={physicalSensations.includes(sensation)} />
+                      <ListItemText primary={sensation} />
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Box>
+
+            <Box>
+              <FormControl fullWidth>
+                <InputLabel id="category-label">Category</InputLabel>
+                <Select
+                  labelId="category-label"
+                  value={category}
+                  onChange={(e) => setCategory(e.target.value as string)}
+                  label="Category"
+                >
+                  {["work", "relationship", "self", "family", "health"].map((c) => (
+                    <MenuItem key={c} value={c}>
+                      {c[0].toUpperCase() + c.slice(1)}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
             </Box>
 
             {error && (
