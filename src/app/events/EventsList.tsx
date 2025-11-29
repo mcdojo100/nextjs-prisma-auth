@@ -1,0 +1,254 @@
+// src/app/events/EventsList.tsx
+"use client";
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import {
+  Box,
+  Card,
+  CardContent,
+  Stack,
+  Typography,
+  Chip,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions,
+  Button,
+  Divider,
+} from "@mui/material";
+import type { Event as PrismaEvent } from "@prisma/client";
+import EventActions from "./EventActions";
+import Link from "next/link";
+import { ButtonBase } from "@mui/material";
+
+type EventsListProps = {
+  events: PrismaEvent[];
+};
+
+type DeleteTarget = {
+  id: string;
+  title: string;
+};
+
+export default function EventsList({ events }: EventsListProps) {
+  const router = useRouter();
+
+  const [deleteTarget, setDeleteTarget] = useState<DeleteTarget | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const openDeleteDialog = (event: PrismaEvent) => {
+    setDeleteTarget({ id: event.id, title: event.title });
+  };
+
+  const handleCloseDialog = () => {
+    if (isDeleting) return;
+    setDeleteTarget(null);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!deleteTarget) return;
+
+    try {
+      setIsDeleting(true);
+
+      const res = await fetch(`/api/events/${deleteTarget.id}`, {
+        method: "DELETE",
+      });
+
+      if (!res.ok) {
+        alert("Failed to delete event");
+        return;
+      }
+
+      setDeleteTarget(null);
+      router.refresh();
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  if (!events.length) {
+    return (
+      <Box sx={{ mt: 2 }}>
+        <Typography variant="body1">
+          You don&apos;t have any events yet. Click &quot;Create Event&quot; to
+          add your first one.
+        </Typography>
+      </Box>
+    );
+  }
+
+  return (
+    <>
+      <Stack spacing={2}>
+        {events.map((event) => (
+          <Link
+            key={event.id}
+            href={`/events/${event.id}`}
+            style={{ textDecoration: "none" }}
+          >
+            <Card
+              variant="outlined"
+              sx={{
+                borderRadius: 2,
+                borderColor: "divider",
+                bgcolor: "background.paper",
+                transition: "all 0.15s ease-in-out",
+                "&:hover": {
+                  boxShadow: 3,
+                  borderColor: "primary.main",
+                  transform: "translateY(-2px)",
+                },
+              }}
+            >
+              <CardContent sx={{ pb: 2.5 }}>
+                {/* Top row: title + category + menu */}
+                <Box
+                  sx={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "flex-start",
+                    gap: 2,
+                    mb: 1.5,
+                  }}
+                >
+                  <Box sx={{ minWidth: 0 }}>
+                    <Typography
+                      variant="h6"
+                      sx={{
+                        mb: 0.5,
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {event.title}
+                    </Typography>
+
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                      <Typography
+                        variant="caption"
+                        sx={{ color: "text.secondary" }}
+                      >
+                        {new Date(event.createdAt).toLocaleString()}
+                      </Typography>
+                    </Box>
+                  </Box>
+
+                  {/* Menu in upper right – keep this */}
+                  <EventActions
+                    onEdit={() => router.push(`/events/${event.id}`)}
+                    onDelete={() => openDeleteDialog(event)}
+                  />
+                </Box>
+
+                {/* Description */}
+                {event.description && (
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      mb: 1.5,
+                      whiteSpace: "pre-line",
+                    }}
+                  >
+                    {event.description}
+                  </Typography>
+                )}
+
+                {/* Divider + intensity / importance row */}
+                <Divider sx={{ mb: 1.5 }} />
+
+                {/* CHIP SECTIONS */}
+                <Box
+                  sx={{ display: "flex", flexDirection: "column", gap: 1.25 }}
+                >
+                  {/* Category */}
+                  {event.category && (
+                    <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.75 }}>
+                      <Chip
+                        label={
+                          event.category[0].toUpperCase() +
+                          event.category.slice(1)
+                        }
+                        size="small"
+                        sx={{ textTransform: "capitalize" }}
+                      />
+                    </Box>
+                  )}
+
+                  {/* Intensity & Importance */}
+                  <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
+                    <Chip
+                      label={`Intensity: ${event.intensity}/10`}
+                      size="small"
+                    />
+                    <Chip
+                      label={`Importance: ${event.importance}/10`}
+                      size="small"
+                    />
+                  </Box>
+
+                  {/* Emotions */}
+                  {(event.emotions?.length ?? 0) > 0 && (
+                    <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.75 }}>
+                      {event.emotions.map((emo) => (
+                        <Chip
+                          key={emo}
+                          label={emo}
+                          size="small"
+                          sx={{ textTransform: "capitalize" }}
+                        />
+                      ))}
+                    </Box>
+                  )}
+
+                  {/* Physical sensations */}
+                  {(event.physicalSensations?.length ?? 0) > 0 && (
+                    <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.75 }}>
+                      {event.physicalSensations.map((ps) => (
+                        <Chip key={ps} label={ps} size="small" />
+                      ))}
+                    </Box>
+                  )}
+                </Box>
+              </CardContent>
+            </Card>
+          </Link>
+        ))}
+      </Stack>
+
+      {/* Delete confirmation dialog */}
+      <Dialog
+        open={Boolean(deleteTarget)}
+        onClose={handleCloseDialog}
+        aria-labelledby="delete-event-dialog-title"
+        fullWidth
+        maxWidth="xs"
+      >
+        <DialogTitle id="delete-event-dialog-title">Delete Event</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            {deleteTarget
+              ? `Are you sure you want to delete the event "${deleteTarget.title}"? This action cannot be undone.`
+              : "Are you sure you want to delete this event?"}
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseDialog} disabled={isDeleting}>
+            Cancel
+          </Button>
+          <Button
+            onClick={handleConfirmDelete}
+            color="error"
+            variant="contained"
+            disabled={isDeleting}
+          >
+            {isDeleting ? "Deleting..." : "Delete"}
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </>
+  );
+}

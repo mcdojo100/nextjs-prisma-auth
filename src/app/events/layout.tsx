@@ -1,5 +1,8 @@
 // app/events/layout.tsx
-import { Box, Button, Typography } from "@mui/material";
+"use client";
+
+import { Box, Typography } from "@mui/material";
+import { usePathname } from "next/navigation";
 import NewEventButton from "./NewEventButton";
 
 export default function EventsLayout({
@@ -7,19 +10,14 @@ export default function EventsLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const pathname = usePathname();
+
+  // true only when ON the main events page
+  // meaning: /events   (but NOT /events/[id])
+  const isEventsListPage = pathname === "/events";
+
   return (
     <Box sx={{ p: 3 }}>
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          mb: 3,
-        }}
-      >
-        <Typography variant="h4">Events</Typography>
-        <NewEventButton />
-      </Box>
       {children}
     </Box>
   );

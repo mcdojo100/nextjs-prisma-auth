@@ -31,9 +31,20 @@ const Header = ({ session }: { session: Session | null }) => {
     ? routes
     : routes.filter((route) => route.path === "/");
 
-  const currentTab = visibleRoutes.findIndex(
-    (route) => route.path === pathname
-  );
+  const currentTab = visibleRoutes.findIndex((route) => {
+    // Handle nested Events routes
+    if (route.path === "/events") {
+      return pathname.startsWith("/events");
+    }
+
+    // Handle nested Logic routes
+    if (route.path === "/logic") {
+      return pathname.startsWith("/logic");
+    }
+
+    // Default exact matching for Home or other tabs
+    return pathname === route.path;
+  });
 
   return (
     <AppBar position="static">
