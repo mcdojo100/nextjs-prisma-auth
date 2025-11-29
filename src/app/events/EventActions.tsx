@@ -28,23 +28,25 @@ export default function EventActions({ onEdit, onDelete }: EventActionsProps) {
     setAnchorEl(event.currentTarget);
   };
 
-  const handleMenuClose = (event?: MouseEvent<HTMLElement>) => {
-    event?.preventDefault();
-    event?.stopPropagation();
+  // Used by Menu's onClose – match MUI's expected type exactly
+  const handleMenuClose = (
+    _event: {},
+    _reason: "backdropClick" | "escapeKeyDown"
+  ) => {
     setAnchorEl(null);
   };
 
   const handleEditClick = (event: MouseEvent<HTMLElement>) => {
     event.preventDefault();
     event.stopPropagation();
-    handleMenuClose();
+    handleMenuClose({}, "escapeKeyDown");
     onEdit();
   };
 
   const handleDeleteClick = (event: MouseEvent<HTMLElement>) => {
     event.preventDefault();
     event.stopPropagation();
-    handleMenuClose();
+    handleMenuClose({}, "escapeKeyDown");
     onDelete();
   };
 
