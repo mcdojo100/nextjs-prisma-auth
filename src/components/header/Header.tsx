@@ -68,15 +68,15 @@ const Header = ({ session }: { session: Session | null }) => {
         <Divider orientation="vertical" flexItem sx={{ mx: 2 }} />
 
         <Box sx={{ flexGrow: 1, display: { xs: "none", md: "flex" } }}>
-          <Tabs
-            value={currentTab === -1 ? false : currentTab}
-            onChange={(_, newValue) => {
-              const route = visibleRoutes[newValue];
-              if (route) router.push(route.path);
-            }}
-          >
+          <Tabs value={currentTab === -1 ? false : currentTab}>
             {visibleRoutes.map((route) => (
-              <Tab key={route.path} label={route.label} />
+              <Tab
+                key={route.path}
+                label={route.label}
+                onClick={() => {
+                  router.push(route.path);
+                }}
+              />
             ))}
           </Tabs>
         </Box>

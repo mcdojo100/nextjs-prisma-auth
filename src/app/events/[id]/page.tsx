@@ -23,36 +23,23 @@ export default async function EditEventPage({ params }: PageProps) {
   if (!event) notFound();
 
   return (
-    <Box
-      component="main"
-      sx={{
-        display: "flex",
-        justifyContent: "center",
-        mt: 4,
-        px: 2,
-      }}
-    >
-      <Paper sx={{ width: "100%", p: 3 }}>
-        {/* Title + Back button */}
-        <Box
-          sx={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            mb: 2,
-          }}
-        >
-          <Typography variant="h5">Edit Event</Typography>
+    <Box sx={{ mt: 2 }}>
+      {/* Title + Create button row */}
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          mb: 3,
+        }}
+      >
+        <Typography variant="h4">Edit Event</Typography>
 
-          <Link href="/events" passHref>
-            <Button variant="outlined" size="small">
-              Back to Events
-            </Button>
-          </Link>
-        </Box>
-
-        <EventForm event={event} />
-      </Paper>
+        <Link href="/events" passHref>
+          <Button variant="contained">Back to Events</Button>
+        </Link>
+      </Box>
+      <EventForm event={event} />
     </Box>
   );
 }
