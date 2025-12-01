@@ -84,6 +84,25 @@ model Event {
   // Relation to User
   userId String
   user   User     @relation(fields: [userId], references: [id])
+
+  logics    Logic[]
+}
+
+model Logic {
+  id          String   @id @default(cuid())
+  importance  Int       // 1–10 rating
+  status      String
+  facts       String    // paragraph
+  assumptions String    // paragraph
+  patterns    String    // paragraph
+  actions     String    // paragraph
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  // Relationship: each Logic belongs to one Event
+  eventId     String
+  event       Event     @relation(fields: [eventId], references: [id], onDelete: Cascade)
 }
 
 

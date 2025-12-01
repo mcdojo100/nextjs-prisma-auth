@@ -1,0 +1,42 @@
+// src/app/api/logic/[logicId]/route.ts
+import { NextRequest, NextResponse } from "next/server";
+import { db } from "@/lib/db";
+
+export async function PUT(
+  request: NextRequest,
+  { params }: { params: Promise<{ logicId: string }> }
+) {
+  const { logicId } = await params;
+
+  try {
+    const body = await request.json();
+    const {
+      importance,
+      status,
+      facts,
+      assumptions,
+      patterns,
+      actions,
+    } = body;
+
+    const logic = await db.logic.update({
+      where: { id: logicId },
+      data: {
+        importance,
+        status,
+        facts,
+        assumptions,
+        patterns,
+        actions,
+      },
+    });
+
+    return NextResponse.json(logic, { status: 200 });
+  } catch (err) {
+    console.error("Error updating logic:", err);
+    return NextResponse.json(
+      { error: "Failed to update logic" },
+      { status: 500 }
+    );
+  }
+}

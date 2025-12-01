@@ -1,30 +1,40 @@
 // src/app/events/[id]/page.tsx
 import { notFound } from "next/navigation";
-import { PrismaClient } from "@prisma/client";
-import { Box, Paper, Typography, Button } from "@mui/material";
-import EventForm from "../EventForm";
-import Link from "next/link";
-
-const prisma = new PrismaClient();
+import { Box, Typography, Divider } from "@mui/material";
+import { db } from "@/lib/db";
+import EditEventDialog from "./EditEventDialog";
+import LogicWorkspace from "./LogicWorkspace";
 
 type PageProps = {
+  // Next 15/16: params is a Promise
   params: Promise<{ id: string }>;
 };
 
-export default async function EditEventPage({ params }: PageProps) {
+export default async function EventDetailPage({ params }: PageProps) {
   const { id } = await params;
 
-  if (!id) notFound();
+  if (!id) {
+    notFound();
+  }
 
-  const event = await prisma.event.findUnique({
+  // 1) Fetch the Event *without* include
+  const event = await db.event.findUnique({
     where: { id },
   });
 
-  if (!event) notFound();
+  if (!event) {
+    notFound();
+  }
+
+  // 2) Fetch the Logics for this Event separately
+  const logics = await db.logic.findMany({
+    where: { eventId: id },
+    orderBy: { createdAt: "desc" },
+  });
 
   return (
-    <Box sx={{ mt: 2 }}>
-      {/* Title + Create button row */}
+    <Box sx={{ mt: 2, px: 2 }}>
+      {/* Header: Event title + actions */}
       <Box
         sx={{
           display: "flex",
@@ -33,13 +43,24 @@ export default async function EditEventPage({ params }: PageProps) {
           mb: 3,
         }}
       >
-        <Typography variant="h4">Edit Event</Typography>
+        <Box>
+          <Typography variant="h4">{event.title}</Typography>
+          {event.createdAt && (
+            <Typography variant="body2" color="text.secondary">
+              Created: {event.createdAt.toLocaleDateString()}
+            </Typography>
+          )}
+        </Box>
 
-        <Link href="/events" passHref>
-          <Button variant="contained">Back to Events</Button>
-        </Link>
+        <Box sx={{ display: "flex", gap: 2 }}>
+          <EditEventDialog event={event} />
+        </Box>
       </Box>
-      <EventForm event={event} />
+
+      <Divider sx={{ mb: 3 }} />
+
+      {/* Logic workspace gets the separate logics array */}
+      <LogicWorkspace eventId={event.id} logics={logics} />
     </Box>
   );
 }
