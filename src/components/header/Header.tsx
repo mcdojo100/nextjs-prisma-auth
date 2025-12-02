@@ -53,34 +53,43 @@ const Header = ({ session }: { session: Session | null }) => {
           noWrap
           sx={{
             mr: 2,
-            display: { xs: "none", md: "flex" },
+            display: { xs: "flex", md: "flex" },
             fontFamily: "monospace",
             fontWeight: 700,
-            letterSpacing: ".3rem",
+            letterSpacing: { xs: ".1rem", md: ".3rem" },
             color: "inherit",
             textDecoration: "none",
+            flexShrink: 0,
           }}
         >
           APP NAME
         </Typography>
 
-        <Divider orientation="vertical" flexItem sx={{ mx: 2 }} />
+        <Divider orientation="vertical" flexItem sx={{ mx: 2, display: { xs: "none", md: "block" } }} />
 
-        <Box sx={{ flexGrow: 1, display: { xs: "none", md: "flex" } }}>
-          <Tabs value={currentTab === -1 ? false : currentTab}>
-            {visibleRoutes.map((route) => (
-              <Tab
-                key={route.path}
-                label={route.label}
-                onClick={() => {
-                  router.push(route.path);
-                }}
-              />
-            ))}
-          </Tabs>
+        {/* spacer keeps actions (sign in/out) pushed right on small screens */}
+        <Box sx={{ flexGrow: 1 }}>
+          <Box sx={{ display: { xs: "flex", md: "flex" } }}>
+            <Tabs
+              value={currentTab === -1 ? false : currentTab}
+              variant="scrollable"
+              scrollButtons="auto"
+            >
+              {visibleRoutes.map((route) => (
+                <Tab
+                  key={route.path}
+                  label={route.label}
+                  onClick={() => {
+                    router.push(route.path);
+                  }}
+                  sx={{ minWidth: { xs: 72, sm: 96 } }}
+                />
+              ))}
+            </Tabs>
+          </Box>
         </Box>
 
-        <Divider orientation="vertical" flexItem sx={{ mx: 2 }} />
+        <Divider orientation="vertical" flexItem sx={{ mx: 2, display: { xs: "none", md: "block" } }} />
 
         <Box sx={{ flexGrow: 0 }}>
           <Button
