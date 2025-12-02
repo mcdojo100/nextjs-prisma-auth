@@ -90,6 +90,8 @@ model Event {
 
 model Logic {
   id          String   @id @default(cuid())
+  title       String   @default("")
+  description String   @default("")
   importance  Int       // 1–10 rating
   status      String
   facts       String    // paragraph

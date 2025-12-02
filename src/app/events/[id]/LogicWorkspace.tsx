@@ -16,12 +16,18 @@ import {
   DialogContent,
   DialogActions,
 } from "@mui/material";
-import type { Logic } from "@prisma/client";
+import type { Logic as PrismaLogic } from "@prisma/client";
 import LogicForm from "../LogicForm";
+
+// Extend the Prisma type so TS knows about the new fields
+type LogicWithTitleDesc = PrismaLogic & {
+  title: string;
+  description: string;
+};
 
 type LogicWorkspaceProps = {
   eventId: string;
-  logics: Logic[];
+  logics: LogicWithTitleDesc[];
 };
 
 export default function LogicWorkspace({
@@ -48,6 +54,8 @@ export default function LogicWorkspace({
   const formInitialData =
     formMode === "edit" && selectedLogic
       ? {
+          title: selectedLogic.title,
+          description: selectedLogic.description,
           importance: selectedLogic.importance,
           status: selectedLogic.status,
           facts: selectedLogic.facts,
@@ -105,7 +113,7 @@ export default function LogicWorkspace({
               key={logic.id}
               variant={logic.id === selectedLogicId ? "outlined" : undefined}
               sx={{
-                width: "100%", // take full width of the parent Stack/container
+                width: "100%",
                 borderColor:
                   logic.id === selectedLogicId ? "primary.main" : "divider",
               }}
@@ -121,10 +129,23 @@ export default function LogicWorkspace({
                     }}
                   >
                     <Typography variant="subtitle1" noWrap>
-                      {logic.status || "No status"}
+                      {logic.title ||  "Untitled logic"}
                     </Typography>
-                    <Chip label={`Imp: ${logic.importance}`} size="small" />
+                    <Chip
+                      label={`Imp: ${logic.importance}`}
+                      size="small"
+                    />
                   </Box>
+
+                     <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                      <Typography
+                        variant="caption"
+                        sx={{ color: "text.secondary" }}
+                      >
+                        {new Date(logic.createdAt).toLocaleString()}
+                      </Typography>
+                    </Box>
+
                   <Typography
                     variant="body2"
                     color="text.secondary"
@@ -135,7 +156,7 @@ export default function LogicWorkspace({
                       overflow: "hidden",
                     }}
                   >
-                    {logic.facts}
+                    {logic.description || logic.facts}
                   </Typography>
                 </CardContent>
               </CardActionArea>
@@ -149,7 +170,7 @@ export default function LogicWorkspace({
         open={dialogOpen}
         onClose={handleCloseDialog}
         fullWidth
-        maxWidth="md"
+        maxWidth="sm"
       >
         <DialogTitle>
           {formMode === "create" ? "New Logic" : "Edit Logic"}
@@ -161,8 +182,6 @@ export default function LogicWorkspace({
             logicId={formLogicId}
             initialData={formInitialData}
             onSuccess={() => {
-              // After success, close dialog.
-              // You can also tweak behavior here if you want to stay in create mode, etc.
               if (formMode === "create") {
                 setMode("create");
                 setSelectedLogicId(null);

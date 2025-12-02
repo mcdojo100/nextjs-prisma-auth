@@ -24,29 +24,10 @@ export default function EditEventDialog({ event }: EditEventDialogProps) {
 
   return (
     <>
-      {/* Top header row */}
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          mb: 2,
-        }}
-      >
-        {/* Back button (top-left) */}
-        <Button
-          variant="text"
-          color="primary"
-          onClick={() => router.push("/events")}
-        >
-          ← Back to Events
-        </Button>
-
-        {/* Edit button (top-right) */}
-        <Button variant="outlined" onClick={() => setOpen(true)}>
-          Edit Event
-        </Button>
-      </Box>
+      {/* Edit button (top-right) */}
+      <Button variant="outlined" onClick={() => setOpen(true)}>
+        Edit Event
+      </Button>
 
       {/* Dialog */}
       <Dialog

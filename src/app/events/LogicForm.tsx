@@ -9,13 +9,18 @@ import {
   Button,
   Stack,
   Alert,
+  MenuItem,        // ⬅️ NEW
 } from "@mui/material";
 import { useRouter } from "next/navigation";
+
+const STATUS_OPTIONS = ["Open", "Needs Watch", "Resolved"] as const;
 
 type LogicFormProps = {
   eventId: string;
   logicId?: string;
   initialData?: {
+    title?: string;
+    description?: string;
     importance: number;
     status: string;
     facts: string;
@@ -36,8 +41,15 @@ export default function LogicForm({
 }: LogicFormProps) {
   const router = useRouter();
 
+  const [title, setTitle] = useState(initialData?.title ?? "");
+  const [description, setDescription] = useState(
+    initialData?.description ?? ""
+  );
+
   const [importance, setImportance] = useState(initialData?.importance ?? 5);
-  const [status, setStatus] = useState(initialData?.status ?? "");
+  const [status, setStatus] = useState(
+    initialData?.status ?? "Open"            // ⬅️ default to "Open"
+  );
   const [facts, setFacts] = useState(initialData?.facts ?? "");
   const [assumptions, setAssumptions] = useState(
     initialData?.assumptions ?? ""
@@ -48,11 +60,12 @@ export default function LogicForm({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // 🔥 Key: keep form state in sync with selected Logic / mode
   useEffect(() => {
     if (mode === "edit" && initialData) {
+      setTitle(initialData.title ?? "");
+      setDescription(initialData.description ?? "");
       setImportance(initialData.importance);
-      setStatus(initialData.status);
+      setStatus(initialData.status || "Open");
       setFacts(initialData.facts);
       setAssumptions(initialData.assumptions);
       setPatterns(initialData.patterns);
@@ -60,8 +73,10 @@ export default function LogicForm({
     }
 
     if (mode === "create" && !initialData) {
+      setTitle("");
+      setDescription("");
       setImportance(5);
-      setStatus("");
+      setStatus("Open");
       setFacts("");
       setAssumptions("");
       setPatterns("");
@@ -88,6 +103,8 @@ export default function LogicForm({
         method: mode === "create" ? "POST" : "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          title,
+          description,
           importance,
           status,
           facts,
@@ -103,10 +120,7 @@ export default function LogicForm({
       }
 
       router.refresh();
-
-      if (onSuccess) {
-        onSuccess();
-      }
+      onSuccess?.();
     } catch (err: any) {
       setError(err.message || "Something went wrong");
     } finally {
@@ -119,27 +133,59 @@ export default function LogicForm({
       <Stack spacing={2}>
         {error && <Alert severity="error">{error}</Alert>}
 
-        <Box>
-          <Typography gutterBottom>Importance (1–10)</Typography>
-          <Slider
-            value={importance}
-            onChange={(_, value) => {
-              if (typeof value === "number") setImportance(value);
-            }}
-            step={1}
-            min={1}
-            max={10}
-            valueLabelDisplay="on"
-          />
-        </Box>
-
         <TextField
-          label="Status"
-          value={status}
-          onChange={(e) => setStatus(e.target.value)}
+          label="Title"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
           fullWidth
           required
         />
+
+        <TextField
+          label="Description"
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          fullWidth
+          multiline
+          minRows={2}
+        />
+
+        {/* Status and Importance on same row (responsive) */}
+        <Box sx={{ display: "flex", gap: 2, flexDirection: { xs: "column", sm: "row" } }}>
+          {/* Left: Status */}
+          <Box sx={{ width: { xs: "100%", sm: "40%" } }}>
+            <TextField
+              select
+              label="Status"
+              value={status}
+              onChange={(e) => setStatus(e.target.value)}
+              fullWidth
+              required
+            >
+          {STATUS_OPTIONS.map((option) => (
+            <MenuItem key={option} value={option}>
+              {option}
+            </MenuItem>
+          ))}
+            </TextField>
+          </Box>
+
+          {/* Right: Importance (slider) */}
+          <Box sx={{ width: { xs: "100%", sm: "60%" } }}>
+            <Typography gutterBottom>Importance (1–10)</Typography>
+            <Slider
+              aria-label="importance-slider"
+              value={importance}
+              onChange={(_, value) => {
+                if (typeof value === "number") setImportance(value);
+              }}
+              step={1}
+              min={1}
+              max={10}
+              valueLabelDisplay="auto"
+            />
+          </Box>
+        </Box>
 
         <TextField
           label="Facts"

@@ -1,6 +1,7 @@
 // src/app/events/[id]/page.tsx
 import { notFound } from "next/navigation";
-import { Box, Typography, Divider } from "@mui/material";
+import Link from "next/link";
+import { Box, Button, Typography, Divider } from "@mui/material";
 import { db } from "@/lib/db";
 import EditEventDialog from "./EditEventDialog";
 import LogicWorkspace from "./LogicWorkspace";
@@ -33,7 +34,7 @@ export default async function EventDetailPage({ params }: PageProps) {
   });
 
   return (
-    <Box sx={{ mt: 2, px: 2 }}>
+    <Box sx={{ mt: 2 }}>
       {/* Header: Event title + actions */}
       <Box
         sx={{
@@ -52,7 +53,10 @@ export default async function EventDetailPage({ params }: PageProps) {
           )}
         </Box>
 
-        <Box sx={{ display: "flex", gap: 2 }}>
+        <Box sx={{ display: "flex", gap: 2, alignItems: 'center' }}>
+          <Link href="/events">
+            <Button variant="text">← Back to Events</Button>
+          </Link>
           <EditEventDialog event={event} />
         </Box>
       </Box>

@@ -11,6 +11,8 @@ export async function POST(
   try {
     const body = await request.json();
     const {
+      title,
+      description,
       importance,
       status,
       facts,
@@ -45,6 +47,8 @@ export async function POST(
 
     const logic = await db.logic.create({
       data: {
+        title: title ?? "",
+        description: description ?? "",
         importance,
         status,
         facts,

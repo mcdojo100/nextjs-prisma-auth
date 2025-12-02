@@ -11,6 +11,8 @@ export async function PUT(
   try {
     const body = await request.json();
     const {
+      title,
+      description,
       importance,
       status,
       facts,
@@ -22,6 +24,8 @@ export async function PUT(
     const logic = await db.logic.update({
       where: { id: logicId },
       data: {
+        title: title ?? undefined,
+        description: description ?? undefined,
         importance,
         status,
         facts,

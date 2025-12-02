@@ -17,7 +17,6 @@ import { usePathname, useRouter } from "next/navigation";
 const routes = [
   { label: "Home", path: "/" },
   { label: "Events", path: "/events" },
-  { label: "Logic", path: "/logic" },
 ];
 
 const Header = ({ session }: { session: Session | null }) => {
