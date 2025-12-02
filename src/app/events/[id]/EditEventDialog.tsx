@@ -3,6 +3,7 @@
 
 import { useState } from "react";
 import {
+  Box,
   Button,
   Dialog,
   DialogTitle,
@@ -23,10 +24,31 @@ export default function EditEventDialog({ event }: EditEventDialogProps) {
 
   return (
     <>
-      <Button variant="outlined" onClick={() => setOpen(true)}>
-        Edit Event
-      </Button>
+      {/* Top header row */}
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          mb: 2,
+        }}
+      >
+        {/* Back button (top-left) */}
+        <Button
+          variant="text"
+          color="primary"
+          onClick={() => router.push("/events")}
+        >
+          ← Back to Events
+        </Button>
 
+        {/* Edit button (top-right) */}
+        <Button variant="outlined" onClick={() => setOpen(true)}>
+          Edit Event
+        </Button>
+      </Box>
+
+      {/* Dialog */}
       <Dialog
         open={open}
         onClose={() => setOpen(false)}
@@ -34,15 +56,17 @@ export default function EditEventDialog({ event }: EditEventDialogProps) {
         maxWidth="sm"
       >
         <DialogTitle>Edit Event</DialogTitle>
+
         <DialogContent dividers>
           <EventForm
             event={event}
             onSuccess={() => {
               setOpen(false);
-              router.refresh(); // reload updated event data
+              router.refresh();
             }}
           />
         </DialogContent>
+
         <DialogActions>
           <Button onClick={() => setOpen(false)}>Close</Button>
         </DialogActions>
