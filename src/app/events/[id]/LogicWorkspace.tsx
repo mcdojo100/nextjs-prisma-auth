@@ -11,11 +11,15 @@ import {
   Chip,
   Stack,
   Typography,
+  IconButton,
+  DialogContentText,
   Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
 } from "@mui/material";
+import DeleteIcon from "@mui/icons-material/Delete";
+import { useRouter } from "next/navigation";
 import type { Logic as PrismaLogic } from "@prisma/client";
 import LogicForm from "../LogicForm";
 
@@ -84,6 +88,43 @@ export default function LogicWorkspace({
     setDialogOpen(false);
   };
 
+  // Delete dialog state
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const router = useRouter();
+
+  const openDeleteDialog = (logicId: string) => {
+    setDeleteTargetId(logicId);
+    setDeleteDialogOpen(true);
+  };
+
+  const closeDeleteDialog = () => {
+    setDeleteDialogOpen(false);
+    setDeleteTargetId(null);
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteTargetId) return;
+    setIsDeleting(true);
+    try {
+      const res = await fetch(`/api/logic/${deleteTargetId}`, {
+        method: "DELETE",
+      });
+      if (!res.ok) {
+        throw new Error("Failed to delete");
+      }
+      closeDeleteDialog();
+      router.refresh();
+    } catch (err) {
+      console.error("Delete failed", err);
+      // keep dialog open or close depending on preference
+      closeDeleteDialog();
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   return (
     <Box sx={{ width: "100%" }}>
       {/* Header row */}
@@ -114,6 +155,7 @@ export default function LogicWorkspace({
               variant={logic.id === selectedLogicId ? "outlined" : undefined}
               sx={{
                 width: "100%",
+                position: "relative",
                 borderColor:
                   logic.id === selectedLogicId ? "primary.main" : "divider",
               }}
@@ -129,22 +171,16 @@ export default function LogicWorkspace({
                     }}
                   >
                     <Typography variant="subtitle1" noWrap>
-                      {logic.title ||  "Untitled logic"}
+                      {logic.title || "Untitled logic"}
                     </Typography>
-                    <Chip
-                      label={`Imp: ${logic.importance}`}
-                      size="small"
-                    />
+                
                   </Box>
 
-                     <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                      <Typography
-                        variant="caption"
-                        sx={{ color: "text.secondary" }}
-                      >
-                        {new Date(logic.createdAt).toLocaleString()}
-                      </Typography>
-                    </Box>
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                    <Typography variant="caption" sx={{ color: "text.secondary" }}>
+                      {new Date(logic.createdAt).toLocaleString()}
+                    </Typography>
+                  </Box>
 
                   <Typography
                     variant="body2"
@@ -156,10 +192,20 @@ export default function LogicWorkspace({
                       overflow: "hidden",
                     }}
                   >
-                    {logic.description || logic.facts}
+                    {logic.description ?? "No description provided."}
                   </Typography>
                 </CardContent>
               </CardActionArea>
+
+              {/* Delete button positioned upper-right */}
+              <IconButton
+                aria-label={`delete-logic-${logic.id}`}
+                size="small"
+                onClick={() => openDeleteDialog(logic.id)}
+                sx={{ position: "absolute", top: 8, right: 8 }}
+              >
+                <DeleteIcon fontSize="small" />
+              </IconButton>
             </Card>
           ))}
         </Stack>
@@ -192,6 +238,35 @@ export default function LogicWorkspace({
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseDialog}>Close</Button>
+        </DialogActions>
+      </Dialog>
+      {/* Delete confirmation dialog */}
+      <Dialog
+        open={deleteDialogOpen}
+        onClose={closeDeleteDialog}
+        aria-labelledby="delete-logic-dialog-title"
+        aria-describedby="delete-logic-dialog-description"
+      >
+        <DialogTitle id="delete-logic-dialog-title">Confirm delete</DialogTitle>
+        <DialogContent>
+          <DialogContentText id="delete-logic-dialog-description">
+            {`Are you sure you want to delete "${
+              logics.find((l) => l.id === deleteTargetId)?.title || "this logic"
+            }"? This action cannot be undone.`}
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={closeDeleteDialog} disabled={isDeleting}>
+            Cancel
+          </Button>
+          <Button
+            onClick={confirmDelete}
+            color="error"
+            disabled={isDeleting}
+            variant="contained"
+          >
+            {isDeleting ? "Deleting..." : "Delete"}
+          </Button>
         </DialogActions>
       </Dialog>
     </Box>

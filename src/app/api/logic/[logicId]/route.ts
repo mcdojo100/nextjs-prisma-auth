@@ -44,3 +44,19 @@ export async function PUT(
     );
   }
 }
+
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: Promise<{ logicId: string }> }
+) {
+  const { logicId } = await params;
+
+  try {
+    // Optionally, you could verify ownership / session here
+    await db.logic.delete({ where: { id: logicId } });
+    return NextResponse.json({ success: true }, { status: 200 });
+  } catch (err) {
+    console.error("Error deleting logic:", err);
+    return NextResponse.json({ error: "Failed to delete logic" }, { status: 500 });
+  }
+}
