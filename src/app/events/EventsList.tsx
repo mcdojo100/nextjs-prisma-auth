@@ -19,9 +19,9 @@ import {
   Divider,
 } from "@mui/material";
 import type { Event as PrismaEvent } from "@prisma/client";
-import EventActions from "./EventActions";
 import Link from "next/link";
-import { ButtonBase } from "@mui/material";
+import { IconButton } from "@mui/material";
+import DeleteIcon from "@mui/icons-material/Delete";
 
 type EventsListProps = {
   events: PrismaEvent[];
@@ -137,11 +137,18 @@ export default function EventsList({ events }: EventsListProps) {
                     </Box>
                   </Box>
 
-                  {/* Menu in upper right – keep this */}
-                  <EventActions
-                    onEdit={() => router.push(`/events/${event.id}`)}
-                    onDelete={() => openDeleteDialog(event)}
-                  />
+                  {/* Delete button in upper right */}
+                  <IconButton
+                    aria-label={`delete-event-${event.id}`}
+                    size="small"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      openDeleteDialog(event);
+                    }}
+                  >
+                    <DeleteIcon fontSize="small" />
+                  </IconButton>
                 </Box>
 
                 {/* Description */}
