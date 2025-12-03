@@ -10,10 +10,32 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { title, description, intensity, importance, emotions, physicalSensations, category } = await req.json();
+  const {
+    title,
+    description,
+    intensity,
+    importance,
+    emotions,
+    physicalSensations,
+    category,
+    verificationStatus,
+  } = await req.json();
 
-  if (!title || typeof intensity !== "number" || typeof importance !== "number") {
+  if (
+    !title ||
+    typeof intensity !== "number" ||
+    typeof importance !== "number"
+  ) {
     return NextResponse.json({ error: "Invalid data" }, { status: 400 });
+  }
+  if (
+    verificationStatus !== undefined &&
+    typeof verificationStatus !== "string"
+  ) {
+    return NextResponse.json(
+      { error: "verificationStatus must be a string if provided" },
+      { status: 400 },
+    );
   }
   const event = await db.event.create({
     // cast the `data` object to any so TypeScript matches the current prisma client schema reliably
@@ -23,8 +45,12 @@ export async function POST(req: Request) {
       intensity,
       importance,
       emotions: Array.isArray(emotions) ? emotions : [],
-      physicalSensations: Array.isArray(physicalSensations) ? physicalSensations : [],
+      physicalSensations: Array.isArray(physicalSensations)
+        ? physicalSensations
+        : [],
       category: category ?? null,
+      verificationStatus:
+        typeof verificationStatus === "string" ? verificationStatus : undefined,
       userId: session.user.id,
     } as any,
   });

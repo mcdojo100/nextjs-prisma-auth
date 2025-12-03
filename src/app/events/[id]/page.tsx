@@ -1,7 +1,7 @@
 // src/app/events/[id]/page.tsx
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { Box, Button, Typography, Divider } from "@mui/material";
+import { Box, Button, Typography, Divider, Chip } from "@mui/material";
 import { db } from "@/lib/db";
 import EditEventDialog from "./EditEventDialog";
 import LogicWorkspace from "./LogicWorkspace";
@@ -47,13 +47,35 @@ export default async function EventDetailPage({ params }: PageProps) {
         <Box>
           <Typography variant="h4">{event.title}</Typography>
           {event.createdAt && (
-            <Typography variant="body2" color="text.secondary">
-              Created: {event.createdAt.toLocaleDateString()}
-            </Typography>
+            <Box sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}>
+              <Typography variant="body2" color="text.secondary">
+                Created: {event.createdAt.toLocaleDateString()}
+              </Typography>
+              {event.verificationStatus && (
+                <Chip
+                  label={event.verificationStatus}
+                  size="small"
+                  color={
+                    event.verificationStatus === "Verified True"
+                      ? "success"
+                      : event.verificationStatus === "Verified False"
+                        ? "warning"
+                        : event.verificationStatus === "Pending"
+                          ? "info"
+                          : event.verificationStatus ===
+                              "True without Verification"
+                            ? "info"
+                            : event.verificationStatus === "Question Mark"
+                              ? "warning"
+                              : "default"
+                  }
+                />
+              )}
+            </Box>
           )}
         </Box>
 
-        <Box sx={{ display: "flex", gap: 2, alignItems: 'center' }}>
+        <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
           <Link href="/events">
             <Button variant="text">← Back to Events</Button>
           </Link>

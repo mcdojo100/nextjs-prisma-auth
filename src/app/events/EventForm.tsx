@@ -34,6 +34,8 @@ export default function EventForm({
   const [importance, setImportance] = useState<number>(5);
   const [physicalSensations, setPhysicalSensations] = useState<string[]>([]);
   const [emotions, setEmotions] = useState<string[]>([]);
+  const [verificationStatus, setVerificationStatus] =
+    useState<string>("Pending");
   const [category, setCategory] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -47,6 +49,30 @@ export default function EventForm({
       setImportance(initialEvent.importance);
       setEmotions(initialEvent.emotions ?? []);
       setPhysicalSensations(initialEvent.physicalSensations ?? []);
+      // Normalize existing database values to one of the UI options
+      const statuses = [
+        "Verified True",
+        "Verified False",
+        "Pending",
+        "True without Verification",
+        "Question Mark",
+        "Closed - Past/Unverified",
+      ];
+      const normalize = (s?: string) =>
+        (s ?? "")
+          .toString()
+          .toLowerCase()
+          .replace(/[^a-z0-9]/g, "");
+      const mapStatus = (s?: string) => {
+        const ns = normalize(s);
+        if (!ns) return "Pending";
+        const found = statuses.find((opt) => {
+          const no = normalize(opt);
+          return no === ns || no.startsWith(ns) || ns.startsWith(no);
+        });
+        return found ?? "Pending";
+      };
+      setVerificationStatus(mapStatus(initialEvent.verificationStatus));
       setCategory(initialEvent.category ?? "");
     } else {
       setTitle("");
@@ -55,6 +81,7 @@ export default function EventForm({
       setImportance(5);
       setEmotions([]);
       setPhysicalSensations([]);
+      setVerificationStatus("Pending");
       setCategory("");
     }
   }, [initialEvent]);
@@ -80,6 +107,7 @@ export default function EventForm({
             emotions,
             category,
             physicalSensations,
+            verificationStatus,
           }),
         });
 
@@ -97,6 +125,7 @@ export default function EventForm({
             emotions,
             category,
             physicalSensations,
+            verificationStatus,
           }),
         });
 
@@ -110,6 +139,7 @@ export default function EventForm({
         setImportance(5);
         setEmotions([]);
         setPhysicalSensations([]);
+        setVerificationStatus("Pending");
         setCategory("");
       }
 
@@ -204,6 +234,31 @@ export default function EventForm({
         </Box>
 
         <FormControl fullWidth>
+          <InputLabel id="verification-status-label">
+            Verification Status
+          </InputLabel>
+          <Select
+            labelId="verification-status-label"
+            value={verificationStatus}
+            onChange={(e) => setVerificationStatus(e.target.value as string)}
+            label="Verification Status"
+          >
+            {[
+              "Verified True",
+              "Verified False",
+              "Pending",
+              "True without Verification",
+              "Question Mark",
+              "Closed - Past/Unverified",
+            ].map((s) => (
+              <MenuItem key={s} value={s}>
+                {s}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+
+        <FormControl fullWidth>
           <InputLabel id="emotions-label">Emotions</InputLabel>
           <Select
             labelId="emotions-label"
@@ -213,7 +268,7 @@ export default function EventForm({
               setEmotions(
                 typeof e.target.value === "string"
                   ? e.target.value.split(",")
-                  : (e.target.value as string[])
+                  : (e.target.value as string[]),
               )
             }
             renderValue={(selected) =>
@@ -253,7 +308,7 @@ export default function EventForm({
               setPhysicalSensations(
                 typeof e.target.value === "string"
                   ? e.target.value.split(",")
-                  : (e.target.value as string[])
+                  : (e.target.value as string[]),
               )
             }
             renderValue={(selected) =>
@@ -313,8 +368,8 @@ export default function EventForm({
             {isSubmitting
               ? "Saving..."
               : initialEvent
-              ? "Save Changes"
-              : "Create Event"}
+                ? "Save Changes"
+                : "Create Event"}
           </Button>
         </Box>
       </Stack>

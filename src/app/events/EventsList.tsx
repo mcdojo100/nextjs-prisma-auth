@@ -22,7 +22,7 @@ import type { Event as PrismaEvent } from "@prisma/client";
 import Link from "next/link";
 import { IconButton } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
-import SortIcon from '@mui/icons-material/Sort';
+import SortIcon from "@mui/icons-material/Sort";
 
 type EventsListProps = {
   events: PrismaEvent[];
@@ -38,7 +38,7 @@ export default function EventsList({ events }: EventsListProps) {
 
   const [deleteTarget, setDeleteTarget] = useState<DeleteTarget | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [sortOrder, setSortOrder] = useState<'desc' | 'asc'>('desc');
+  const [sortOrder, setSortOrder] = useState<"desc" | "asc">("desc");
 
   const openDeleteDialog = (event: PrismaEvent) => {
     setDeleteTarget({ id: event.id, title: event.title });
@@ -75,7 +75,7 @@ export default function EventsList({ events }: EventsListProps) {
   const sortedEvents = [...events].sort((a, b) => {
     const ta = new Date(a.createdAt).getTime();
     const tb = new Date(b.createdAt).getTime();
-    return sortOrder === 'desc' ? tb - ta : ta - tb;
+    return sortOrder === "desc" ? tb - ta : ta - tb;
   });
 
   if (!sortedEvents.length) {
@@ -92,13 +92,13 @@ export default function EventsList({ events }: EventsListProps) {
   return (
     <>
       {/* Sort control */}
-      <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 1 }}>
+      <Box sx={{ display: "flex", justifyContent: "flex-end", mb: 1 }}>
         <Button
           size="small"
           startIcon={<SortIcon />}
-          onClick={() => setSortOrder((s) => (s === 'desc' ? 'asc' : 'desc'))}
+          onClick={() => setSortOrder((s) => (s === "desc" ? "asc" : "desc"))}
         >
-          Sort: {sortOrder === 'desc' ? 'Newest' : 'Oldest'}
+          Sort: {sortOrder === "desc" ? "Newest" : "Oldest"}
         </Button>
       </Box>
       <Stack spacing={2}>
@@ -146,13 +146,42 @@ export default function EventsList({ events }: EventsListProps) {
                       {event.title}
                     </Typography>
 
-                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                    <Box
+                      sx={{
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: 0.5,
+                      }}
+                    >
                       <Typography
                         variant="caption"
                         sx={{ color: "text.secondary" }}
                       >
                         {new Date(event.createdAt).toLocaleString()}
                       </Typography>
+                      {event.verificationStatus && (
+                        <Box>
+                          <Chip
+                            label={event.verificationStatus}
+                            size="small"
+                            color={
+                              event.verificationStatus === "Verified True"
+                                ? "success"
+                                : event.verificationStatus === "Verified False"
+                                  ? "warning"
+                                  : event.verificationStatus === "Pending"
+                                    ? "info"
+                                    : event.verificationStatus ===
+                                        "True without Verification"
+                                      ? "info"
+                                      : event.verificationStatus ===
+                                          "Question Mark"
+                                        ? "warning"
+                                        : "default"
+                            }
+                          />
+                        </Box>
+                      )}
                     </Box>
                   </Box>
 

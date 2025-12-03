@@ -30,10 +30,26 @@ export async function PUT(req: NextRequest, context: RouteContext) {
     emotions,
     physicalSensations,
     category,
+    verificationStatus, // ⭐ NEW
   } = payload;
 
-  if (!title || typeof intensity !== "number" || typeof importance !== "number") {
+  if (
+    !title ||
+    typeof intensity !== "number" ||
+    typeof importance !== "number"
+  ) {
     return NextResponse.json({ error: "Invalid data" }, { status: 400 });
+  }
+
+  // optional type check for the new field
+  if (
+    verificationStatus !== undefined &&
+    typeof verificationStatus !== "string"
+  ) {
+    return NextResponse.json(
+      { error: "verificationStatus must be a string if provided" },
+      { status: 400 },
+    );
   }
 
   // ensure event exists and belongs to this user
@@ -53,8 +69,16 @@ export async function PUT(req: NextRequest, context: RouteContext) {
       intensity,
       importance,
       emotions: Array.isArray(emotions) ? emotions : [],
-      physicalSensations: Array.isArray(physicalSensations) ? physicalSensations : [],
+      physicalSensations: Array.isArray(physicalSensations)
+        ? physicalSensations
+        : [],
       category: category ?? null,
+      // ⭐ Only update verificationStatus if a valid string was provided;
+      // otherwise keep the existing value.
+      verificationStatus:
+        typeof verificationStatus === "string"
+          ? verificationStatus
+          : existing.verificationStatus,
     },
   });
 
