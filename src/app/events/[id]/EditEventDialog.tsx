@@ -45,12 +45,11 @@ export default function EditEventDialog({ event }: EditEventDialogProps) {
               setOpen(false);
               router.refresh();
             }}
+            onCancel={() => {
+              setOpen(false);
+            }}
           />
         </DialogContent>
-
-        <DialogActions>
-          <Button onClick={() => setOpen(false)}>Close</Button>
-        </DialogActions>
       </Dialog>
     </>
   );
