@@ -161,7 +161,7 @@ export default function LogicWorkspace({
               }}
             >
               <CardActionArea onClick={() => handleOpenEdit(logic.id)}>
-                <CardContent>
+                <CardContent sx={{ pr: 1 }}>
                   <Box
                     sx={{
                       display: "flex",
@@ -173,7 +173,32 @@ export default function LogicWorkspace({
                     <Typography variant="subtitle1" noWrap>
                       {logic.title || "Untitled logic"}
                     </Typography>
-                
+                    {/* Importance pill + delete button (centered) */}
+                    <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
+                      <Chip
+                        label={`Imp: ${logic.importance}`}
+                        size="small"
+                        color={
+                          logic.importance >= 8
+                            ? "error"
+                            : logic.importance >= 6
+                            ? "warning"
+                            : logic.importance >= 4
+                            ? "info"
+                            : "success"
+                        }
+                      />
+                      <IconButton
+                        aria-label={`delete-logic-${logic.id}`}
+                        size="small"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          openDeleteDialog(logic.id);
+                        }}
+                      >
+                        <DeleteIcon fontSize="small" />
+                      </IconButton>
+                    </Box>
                   </Box>
 
                   <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
@@ -197,15 +222,7 @@ export default function LogicWorkspace({
                 </CardContent>
               </CardActionArea>
 
-              {/* Delete button positioned upper-right */}
-              <IconButton
-                aria-label={`delete-logic-${logic.id}`}
-                size="small"
-                onClick={() => openDeleteDialog(logic.id)}
-                sx={{ position: "absolute", top: 8, right: 8 }}
-              >
-                <DeleteIcon fontSize="small" />
-              </IconButton>
+              {/* delete button moved into header row */}
             </Card>
           ))}
         </Stack>
