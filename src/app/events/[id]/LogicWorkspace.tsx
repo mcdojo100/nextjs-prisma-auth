@@ -20,6 +20,7 @@ import {
 } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { useRouter } from "next/navigation";
+import SortIcon from '@mui/icons-material/Sort';
 import type { Logic as PrismaLogic } from "@prisma/client";
 import LogicForm from "../LogicForm";
 
@@ -45,6 +46,8 @@ export default function LogicWorkspace({
     logics.length > 0 ? "view-edit" : "create"
   );
   const [dialogOpen, setDialogOpen] = useState(false);
+
+  const [sortOrder, setSortOrder] = useState<'desc' | 'asc'>('desc');
 
   const selectedLogic = useMemo(
     () => logics.find((l) => l.id === selectedLogicId) || null,
@@ -87,6 +90,13 @@ export default function LogicWorkspace({
   const handleCloseDialog = () => {
     setDialogOpen(false);
   };
+
+  // sorted logics according to sortOrder
+  const sortedLogics = [...logics].sort((a, b) => {
+    const ta = new Date(a.createdAt).getTime();
+    const tb = new Date(b.createdAt).getTime();
+    return sortOrder === 'desc' ? tb - ta : ta - tb;
+  });
 
   // Delete dialog state
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -137,9 +147,18 @@ export default function LogicWorkspace({
         }}
       >
         <Typography variant="h6">Logic</Typography>
-        <Button variant="contained" size="small" onClick={handleOpenCreate}>
-          + New Logic
-        </Button>
+        <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+          <Button
+            size="small"
+            startIcon={<SortIcon />}
+            onClick={() => setSortOrder((s) => (s === 'desc' ? 'asc' : 'desc'))}
+          >
+            {sortOrder === 'desc' ? 'Newest' : 'Oldest'}
+          </Button>
+          <Button variant="contained" size="small" onClick={handleOpenCreate}>
+            + New Logic
+          </Button>
+        </Box>
       </Box>
 
       {/* Logic cards list – full width of container */}
@@ -148,8 +167,9 @@ export default function LogicWorkspace({
           No Logic items yet. Click &quot;New Logic&quot; to add your first one.
         </Typography>
       ) : (
+        // sort logics by createdAt (newest first) to ensure consistent ordering
         <Stack spacing={1.5}>
-          {logics.map((logic) => (
+          {sortedLogics.map((logic) => (
             <Card
               key={logic.id}
               variant={logic.id === selectedLogicId ? "outlined" : undefined}
@@ -161,7 +181,7 @@ export default function LogicWorkspace({
               }}
             >
               <CardActionArea onClick={() => handleOpenEdit(logic.id)}>
-                <CardContent sx={{ pr: 1 }}>
+                <CardContent sx={{ pr: 6 }}>
                   <Box
                     sx={{
                       display: "flex",
@@ -188,16 +208,7 @@ export default function LogicWorkspace({
                             : "success"
                         }
                       />
-                      <IconButton
-                        aria-label={`delete-logic-${logic.id}`}
-                        size="small"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          openDeleteDialog(logic.id);
-                        }}
-                      >
-                        <DeleteIcon fontSize="small" />
-                      </IconButton>
+                      {/* delete icon moved outside CardActionArea to avoid nested <button> elements */}
                     </Box>
                   </Box>
 
@@ -222,7 +233,18 @@ export default function LogicWorkspace({
                 </CardContent>
               </CardActionArea>
 
-              {/* delete button moved into header row */}
+              {/* Delete button positioned upper-right (outside CardActionArea to avoid nested buttons) */}
+              <IconButton
+                aria-label={`delete-logic-${logic.id}`}
+                size="small"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  openDeleteDialog(logic.id);
+                }}
+                sx={{ position: "absolute", top: 8, right: 8 }}
+              >
+                <DeleteIcon fontSize="small" />
+              </IconButton>
             </Card>
           ))}
         </Stack>

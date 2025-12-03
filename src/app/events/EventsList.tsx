@@ -22,6 +22,7 @@ import type { Event as PrismaEvent } from "@prisma/client";
 import Link from "next/link";
 import { IconButton } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
+import SortIcon from '@mui/icons-material/Sort';
 
 type EventsListProps = {
   events: PrismaEvent[];
@@ -37,6 +38,7 @@ export default function EventsList({ events }: EventsListProps) {
 
   const [deleteTarget, setDeleteTarget] = useState<DeleteTarget | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [sortOrder, setSortOrder] = useState<'desc' | 'asc'>('desc');
 
   const openDeleteDialog = (event: PrismaEvent) => {
     setDeleteTarget({ id: event.id, title: event.title });
@@ -69,7 +71,14 @@ export default function EventsList({ events }: EventsListProps) {
     }
   };
 
-  if (!events.length) {
+  // ensure events are sorted by createdAt according to sortOrder
+  const sortedEvents = [...events].sort((a, b) => {
+    const ta = new Date(a.createdAt).getTime();
+    const tb = new Date(b.createdAt).getTime();
+    return sortOrder === 'desc' ? tb - ta : ta - tb;
+  });
+
+  if (!sortedEvents.length) {
     return (
       <Box sx={{ mt: 2 }}>
         <Typography variant="body1">
@@ -82,8 +91,18 @@ export default function EventsList({ events }: EventsListProps) {
 
   return (
     <>
+      {/* Sort control */}
+      <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 1 }}>
+        <Button
+          size="small"
+          startIcon={<SortIcon />}
+          onClick={() => setSortOrder((s) => (s === 'desc' ? 'asc' : 'desc'))}
+        >
+          Sort: {sortOrder === 'desc' ? 'Newest' : 'Oldest'}
+        </Button>
+      </Box>
       <Stack spacing={2}>
-        {events.map((event) => (
+        {sortedEvents.map((event) => (
           <Link
             key={event.id}
             href={`/events/${event.id}`}
