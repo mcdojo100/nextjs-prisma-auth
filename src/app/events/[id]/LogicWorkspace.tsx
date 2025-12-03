@@ -20,7 +20,7 @@ import {
 } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { useRouter } from "next/navigation";
-import SortIcon from '@mui/icons-material/Sort';
+import SortIcon from "@mui/icons-material/Sort";
 import type { Logic as PrismaLogic } from "@prisma/client";
 import LogicForm from "../LogicForm";
 
@@ -40,18 +40,18 @@ export default function LogicWorkspace({
   logics,
 }: LogicWorkspaceProps) {
   const [selectedLogicId, setSelectedLogicId] = useState<string | null>(
-    logics[0]?.id ?? null
+    logics[0]?.id ?? null,
   );
   const [mode, setMode] = useState<"view-edit" | "create">(
-    logics.length > 0 ? "view-edit" : "create"
+    logics.length > 0 ? "view-edit" : "create",
   );
   const [dialogOpen, setDialogOpen] = useState(false);
 
-  const [sortOrder, setSortOrder] = useState<'desc' | 'asc'>('desc');
+  const [sortOrder, setSortOrder] = useState<"desc" | "asc">("desc");
 
   const selectedLogic = useMemo(
     () => logics.find((l) => l.id === selectedLogicId) || null,
-    [logics, selectedLogicId]
+    [logics, selectedLogicId],
   );
 
   // Decide if the form is in create or edit mode
@@ -95,7 +95,7 @@ export default function LogicWorkspace({
   const sortedLogics = [...logics].sort((a, b) => {
     const ta = new Date(a.createdAt).getTime();
     const tb = new Date(b.createdAt).getTime();
-    return sortOrder === 'desc' ? tb - ta : ta - tb;
+    return sortOrder === "desc" ? tb - ta : ta - tb;
   });
 
   // Delete dialog state
@@ -147,13 +147,13 @@ export default function LogicWorkspace({
         }}
       >
         <Typography variant="h6">Logic</Typography>
-        <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+        <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
           <Button
             size="small"
             startIcon={<SortIcon />}
-            onClick={() => setSortOrder((s) => (s === 'desc' ? 'asc' : 'desc'))}
+            onClick={() => setSortOrder((s) => (s === "desc" ? "asc" : "desc"))}
           >
-            {sortOrder === 'desc' ? 'Newest' : 'Oldest'}
+            {sortOrder === "desc" ? "Newest" : "Oldest"}
           </Button>
           <Button variant="contained" size="small" onClick={handleOpenCreate}>
             + New Logic
@@ -181,7 +181,7 @@ export default function LogicWorkspace({
               }}
             >
               <CardActionArea onClick={() => handleOpenEdit(logic.id)}>
-                <CardContent sx={{ pr: 6 }}>
+                <CardContent sx={{ pr: 1 }}>
                   <Box
                     sx={{
                       display: "flex",
@@ -193,27 +193,48 @@ export default function LogicWorkspace({
                     <Typography variant="subtitle1" noWrap>
                       {logic.title || "Untitled logic"}
                     </Typography>
-                    {/* Importance pill + delete button (centered) */}
-                    <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
-                      <Chip
-                        label={`Imp: ${logic.importance}`}
-                        size="small"
-                        color={
-                          logic.importance >= 8
-                            ? "error"
-                            : logic.importance >= 6
-                            ? "warning"
-                            : logic.importance >= 4
-                            ? "info"
-                            : "success"
-                        }
-                      />
-                      {/* delete icon moved outside CardActionArea to avoid nested <button> elements */}
+                    <Box
+                      sx={{
+                        display: "flex",
+                        gap: 1,
+                        alignItems: "center",
+                      }}
+                    >
+                      <Box
+                        sx={{ display: "flex", alignItems: "center", gap: 1 }}
+                      >
+                        <Chip
+                          label={`Imp: ${logic.importance}`}
+                          size="small"
+                          color={
+                            logic.importance >= 8
+                              ? "error"
+                              : logic.importance >= 6
+                                ? "warning"
+                                : logic.importance >= 4
+                                  ? "info"
+                                  : "success"
+                          }
+                        />
+                        <IconButton
+                          aria-label={`delete-logic-${logic.id}`}
+                          size="small"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            openDeleteDialog(logic.id);
+                          }}
+                        >
+                          <DeleteIcon fontSize="small" />
+                        </IconButton>
+                      </Box>
                     </Box>
                   </Box>
 
                   <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                    <Typography variant="caption" sx={{ color: "text.secondary" }}>
+                    <Typography
+                      variant="caption"
+                      sx={{ color: "text.secondary" }}
+                    >
                       {new Date(logic.createdAt).toLocaleString()}
                     </Typography>
                   </Box>
@@ -232,19 +253,6 @@ export default function LogicWorkspace({
                   </Typography>
                 </CardContent>
               </CardActionArea>
-
-              {/* Delete button positioned upper-right (outside CardActionArea to avoid nested buttons) */}
-              <IconButton
-                aria-label={`delete-logic-${logic.id}`}
-                size="small"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  openDeleteDialog(logic.id);
-                }}
-                sx={{ position: "absolute", top: 8, right: 8 }}
-              >
-                <DeleteIcon fontSize="small" />
-              </IconButton>
             </Card>
           ))}
         </Stack>
