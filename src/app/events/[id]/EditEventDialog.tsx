@@ -1,56 +1,125 @@
 // src/app/events/[id]/EditEventDialog.tsx
-"use client";
+'use client'
 
-import { useState } from "react";
+import { useState } from 'react'
 import {
   Box,
-  Button,
+  IconButton,
+  Menu,
+  MenuItem,
   Dialog,
   DialogTitle,
   DialogContent,
+  DialogContentText,
   DialogActions,
-} from "@mui/material";
-import type { Event } from "@prisma/client";
-import { useRouter } from "next/navigation";
-import EventForm from "../EventForm";
+  Button,
+} from '@mui/material'
+import MoreVertIcon from '@mui/icons-material/MoreVert'
+import type { Event } from '@prisma/client'
+import { useRouter } from 'next/navigation'
+import EventForm from '../EventForm'
 
 type EditEventDialogProps = {
-  event: Event;
-};
+  event: Event
+}
 
 export default function EditEventDialog({ event }: EditEventDialogProps) {
-  const [open, setOpen] = useState(false);
-  const router = useRouter();
+  const [menuAnchorEl, setMenuAnchorEl] = useState<HTMLElement | null>(null)
+  const [editOpen, setEditOpen] = useState(false)
+  const [confirmOpen, setConfirmOpen] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
+  const router = useRouter()
+
+  const openMenu = (e: React.MouseEvent<HTMLElement>) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setMenuAnchorEl(e.currentTarget)
+  }
+
+  const closeMenu = () => setMenuAnchorEl(null)
+
+  const handleEdit = () => {
+    closeMenu()
+    setEditOpen(true)
+  }
+
+  const handleDelete = () => {
+    closeMenu()
+    setConfirmOpen(true)
+  }
+
+  const confirmDelete = async () => {
+    setIsDeleting(true)
+    try {
+      const res = await fetch(`/api/events/${event.id}`, { method: 'DELETE' })
+      if (!res.ok) throw new Error('Delete failed')
+      // after deletion, navigate back to list
+      router.push('/events')
+    } catch (err) {
+      console.error(err)
+    } finally {
+      setIsDeleting(false)
+      setConfirmOpen(false)
+    }
+  }
 
   return (
     <>
-      {/* Edit button (top-right) */}
-      <Button variant="outlined" onClick={() => setOpen(true)}>
-        Edit Event
-      </Button>
+      <IconButton aria-label="event-options" size="small" onClick={openMenu}>
+        <MoreVertIcon fontSize="small" />
+      </IconButton>
 
-      {/* Dialog */}
-      <Dialog
-        open={open}
-        onClose={() => setOpen(false)}
-        fullWidth
-        maxWidth="sm"
-      >
+      <Menu anchorEl={menuAnchorEl} open={Boolean(menuAnchorEl)} onClose={closeMenu}>
+        <MenuItem
+          onClick={(e) => {
+            e.preventDefault()
+            e.stopPropagation()
+            handleEdit()
+          }}
+        >
+          Edit
+        </MenuItem>
+        <MenuItem
+          onClick={(e) => {
+            e.preventDefault()
+            e.stopPropagation()
+            handleDelete()
+          }}
+        >
+          Delete
+        </MenuItem>
+      </Menu>
+
+      <Dialog open={editOpen} onClose={() => setEditOpen(false)} fullWidth maxWidth="sm">
         <DialogTitle>Edit Event</DialogTitle>
-
         <DialogContent dividers>
           <EventForm
             event={event}
             onSuccess={() => {
-              setOpen(false);
-              router.refresh();
+              setEditOpen(false)
+              router.refresh()
             }}
-            onCancel={() => {
-              setOpen(false);
-            }}
+            onCancel={() => setEditOpen(false)}
           />
         </DialogContent>
       </Dialog>
+
+      <Dialog open={confirmOpen} onClose={() => setConfirmOpen(false)} fullWidth maxWidth="xs">
+        <DialogTitle>Delete Event</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Are you sure you want to delete "{event.title}"? This action cannot be undone.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setConfirmOpen(false)} disabled={isDeleting}>
+            Cancel
+          </Button>
+          <Button onClick={confirmDelete} color="error" variant="contained" disabled={isDeleting}>
+            {isDeleting ? 'Deleting...' : 'Delete'}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </>
-  );
+  )
 }

@@ -1,4 +1,4 @@
-"use client";
+'use client'
 
 import {
   Box,
@@ -12,93 +12,88 @@ import {
   MenuItem,
   Checkbox,
   ListItemText,
-} from "@mui/material";
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import type { Event as PrismaEvent } from "@prisma/client";
+} from '@mui/material'
+import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
+import type { Event as PrismaEvent } from '@prisma/client'
 
 type EventFormProps = {
-  event?: PrismaEvent | null;
-  onSuccess?: () => void;
-  onCancel?: () => void;
-};
+  event?: PrismaEvent | null
+  onSuccess?: () => void
+  onCancel?: () => void
+}
 
-export default function EventForm({
-  event: initialEvent,
-  onSuccess,
-  onCancel,
-}: EventFormProps) {
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [intensity, setIntensity] = useState<number>(5);
-  const [importance, setImportance] = useState<number>(5);
-  const [physicalSensations, setPhysicalSensations] = useState<string[]>([]);
-  const [emotions, setEmotions] = useState<string[]>([]);
-  const [verificationStatus, setVerificationStatus] =
-    useState<string>("Pending");
-  const [category, setCategory] = useState<string>("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const router = useRouter();
+export default function EventForm({ event: initialEvent, onSuccess, onCancel }: EventFormProps) {
+  const [title, setTitle] = useState('')
+  const [description, setDescription] = useState('')
+  const [intensity, setIntensity] = useState<number>(5)
+  const [importance, setImportance] = useState<number>(5)
+  const [physicalSensations, setPhysicalSensations] = useState<string[]>([])
+  const [emotions, setEmotions] = useState<string[]>([])
+  const [verificationStatus, setVerificationStatus] = useState<string>('Pending')
+  const [category, setCategory] = useState<string>('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const router = useRouter()
 
   useEffect(() => {
     if (initialEvent) {
-      setTitle(initialEvent.title);
-      setDescription(initialEvent.description);
-      setIntensity(initialEvent.intensity);
-      setImportance(initialEvent.importance);
-      setEmotions(initialEvent.emotions ?? []);
-      setPhysicalSensations(initialEvent.physicalSensations ?? []);
+      setTitle(initialEvent.title)
+      setDescription(initialEvent.description)
+      setIntensity(initialEvent.intensity)
+      setImportance(initialEvent.importance)
+      setEmotions(initialEvent.emotions ?? [])
+      setPhysicalSensations(initialEvent.physicalSensations ?? [])
       // Normalize existing database values to one of the UI options
       const statuses = [
-        "Verified True",
-        "Verified False",
-        "Pending",
-        "True without Verification",
-        "Question Mark",
-        "Closed - Past/Unverified",
-      ];
+        'Verified True',
+        'Verified False',
+        'Pending',
+        'True without Verification',
+        'Question Mark',
+        'Closed - Past/Unverified',
+      ]
       const normalize = (s?: string) =>
-        (s ?? "")
+        (s ?? '')
           .toString()
           .toLowerCase()
-          .replace(/[^a-z0-9]/g, "");
+          .replace(/[^a-z0-9]/g, '')
       const mapStatus = (s?: string) => {
-        const ns = normalize(s);
-        if (!ns) return "Pending";
+        const ns = normalize(s)
+        if (!ns) return 'Pending'
         const found = statuses.find((opt) => {
-          const no = normalize(opt);
-          return no === ns || no.startsWith(ns) || ns.startsWith(no);
-        });
-        return found ?? "Pending";
-      };
-      setVerificationStatus(mapStatus(initialEvent.verificationStatus));
-      setCategory(initialEvent.category ?? "");
+          const no = normalize(opt)
+          return no === ns || no.startsWith(ns) || ns.startsWith(no)
+        })
+        return found ?? 'Pending'
+      }
+      setVerificationStatus(mapStatus(initialEvent.verificationStatus))
+      setCategory(initialEvent.category ?? '')
     } else {
-      setTitle("");
-      setDescription("");
-      setIntensity(5);
-      setImportance(5);
-      setEmotions([]);
-      setPhysicalSensations([]);
-      setVerificationStatus("Pending");
-      setCategory("");
+      setTitle('')
+      setDescription('')
+      setIntensity(5)
+      setImportance(5)
+      setEmotions([])
+      setPhysicalSensations([])
+      setVerificationStatus('Pending')
+      setCategory('')
     }
-  }, [initialEvent]);
+  }, [initialEvent])
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    setError(null);
+    e.preventDefault()
+    setIsSubmitting(true)
+    setError(null)
 
     try {
-      let res: Response;
+      let res: Response
 
       if (initialEvent?.id) {
         // update existing
         res = await fetch(`/api/events/${initialEvent.id}`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             title,
             description,
@@ -109,14 +104,14 @@ export default function EventForm({
             physicalSensations,
             verificationStatus,
           }),
-        });
+        })
 
-        if (!res.ok) throw new Error("Failed to update event");
+        if (!res.ok) throw new Error('Failed to update event')
       } else {
         // create new
-        res = await fetch("/api/events", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
+        res = await fetch('/api/events', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             title,
             description,
@@ -127,40 +122,46 @@ export default function EventForm({
             physicalSensations,
             verificationStatus,
           }),
-        });
+        })
 
-        if (!res.ok) throw new Error("Failed to create event");
+        if (!res.ok) throw new Error('Failed to create event')
       }
 
       if (!initialEvent) {
-        setTitle("");
-        setDescription("");
-        setIntensity(5);
-        setImportance(5);
-        setEmotions([]);
-        setPhysicalSensations([]);
-        setVerificationStatus("Pending");
-        setCategory("");
+        setTitle('')
+        setDescription('')
+        setIntensity(5)
+        setImportance(5)
+        setEmotions([])
+        setPhysicalSensations([])
+        setVerificationStatus('Pending')
+        setCategory('')
       }
 
-      router.push("/events");
-      router.refresh();
-      onSuccess?.();
+      // Only navigate back to the list when creating a new event.
+      if (!initialEvent) {
+        router.push('/events')
+      } else {
+        // When editing, stay on the same page and just refresh data.
+        router.refresh()
+      }
+
+      onSuccess?.()
     } catch (err) {
-      setError("Something went wrong. Please try again.");
+      setError('Something went wrong. Please try again.')
     } finally {
-      setIsSubmitting(false);
+      setIsSubmitting(false)
     }
-  };
+  }
 
   const handleCancel = () => {
     if (onCancel) {
-      onCancel(); // let parent do extra stuff if it wants (e.g., close dialog)
+      onCancel() // let parent do extra stuff if it wants (e.g., close dialog)
     } else {
-      router.push("/events"); // default: go back to list
-      router.refresh();
+      router.push('/events') // default: go back to list
+      router.refresh()
     }
-  };
+  }
 
   return (
     <form onSubmit={handleSubmit}>
@@ -185,16 +186,16 @@ export default function EventForm({
 
         <Box
           sx={{
-            display: "grid",
-            gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" },
+            display: 'grid',
+            gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' },
             gap: 2,
           }}
         >
           <Box>
             <Box
               sx={{
-                display: "flex",
-                justifyContent: "space-between",
+                display: 'flex',
+                justifyContent: 'space-between',
                 mb: 0.5,
                 fontSize: 14,
               }}
@@ -214,8 +215,8 @@ export default function EventForm({
           <Box>
             <Box
               sx={{
-                display: "flex",
-                justifyContent: "space-between",
+                display: 'flex',
+                justifyContent: 'space-between',
                 mb: 0.5,
                 fontSize: 14,
               }}
@@ -234,9 +235,7 @@ export default function EventForm({
         </Box>
 
         <FormControl fullWidth>
-          <InputLabel id="verification-status-label">
-            Verification Status
-          </InputLabel>
+          <InputLabel id="verification-status-label">Verification Status</InputLabel>
           <Select
             labelId="verification-status-label"
             value={verificationStatus}
@@ -244,12 +243,12 @@ export default function EventForm({
             label="Verification Status"
           >
             {[
-              "Verified True",
-              "Verified False",
-              "Pending",
-              "True without Verification",
-              "Question Mark",
-              "Closed - Past/Unverified",
+              'Verified True',
+              'Verified False',
+              'Pending',
+              'True without Verification',
+              'Question Mark',
+              'Closed - Past/Unverified',
             ].map((s) => (
               <MenuItem key={s} value={s}>
                 {s}
@@ -266,67 +265,54 @@ export default function EventForm({
             value={emotions}
             onChange={(e) =>
               setEmotions(
-                typeof e.target.value === "string"
-                  ? e.target.value.split(",")
+                typeof e.target.value === 'string'
+                  ? e.target.value.split(',')
                   : (e.target.value as string[]),
               )
             }
             renderValue={(selected) =>
-              (selected as string[]).length
-                ? (selected as string[]).join(", ")
-                : "None"
+              (selected as string[]).length ? (selected as string[]).join(', ') : 'None'
             }
             label="Emotions"
           >
-            {[
-              "anger",
-              "sadness",
-              "anxiety",
-              "numbness",
-              "confusion",
-              "shame",
-              "hope",
-              "calm",
-            ].map((emo) => (
-              <MenuItem key={emo} value={emo}>
-                <Checkbox checked={emotions.includes(emo)} />
-                <ListItemText primary={emo[0].toUpperCase() + emo.slice(1)} />
-              </MenuItem>
-            ))}
+            {['anger', 'sadness', 'anxiety', 'numbness', 'confusion', 'shame', 'hope', 'calm'].map(
+              (emo) => (
+                <MenuItem key={emo} value={emo}>
+                  <Checkbox checked={emotions.includes(emo)} />
+                  <ListItemText primary={emo[0].toUpperCase() + emo.slice(1)} />
+                </MenuItem>
+              ),
+            )}
           </Select>
         </FormControl>
 
         <FormControl fullWidth>
-          <InputLabel id="physical-sensations-label">
-            Physical Sensations
-          </InputLabel>
+          <InputLabel id="physical-sensations-label">Physical Sensations</InputLabel>
           <Select
             labelId="physical-sensations-label"
             multiple
             value={physicalSensations}
             onChange={(e) =>
               setPhysicalSensations(
-                typeof e.target.value === "string"
-                  ? e.target.value.split(",")
+                typeof e.target.value === 'string'
+                  ? e.target.value.split(',')
                   : (e.target.value as string[]),
               )
             }
             renderValue={(selected) =>
-              (selected as string[]).length
-                ? (selected as string[]).join(", ")
-                : "None"
+              (selected as string[]).length ? (selected as string[]).join(', ') : 'None'
             }
             label="Physical Sensations"
           >
             {[
-              "Tight Chest",
-              "Butterflies/Stomach Flutters",
-              "Headache/Pressure",
-              "Warmth or Heat in the Body",
-              "Shaky or Trembling",
-              "Tension in Shoulders/Neck",
-              "Shortness of Breath",
-              "Fatigue/Heavy Limbs",
+              'Tight Chest',
+              'Butterflies/Stomach Flutters',
+              'Headache/Pressure',
+              'Warmth or Heat in the Body',
+              'Shaky or Trembling',
+              'Tension in Shoulders/Neck',
+              'Shortness of Breath',
+              'Fatigue/Heavy Limbs',
             ].map((s) => (
               <MenuItem key={s} value={s}>
                 <Checkbox checked={physicalSensations.includes(s)} />
@@ -344,7 +330,7 @@ export default function EventForm({
             onChange={(e) => setCategory(e.target.value as string)}
             label="Category"
           >
-            {["work", "relationship", "self", "family", "health"].map((c) => (
+            {['work', 'relationship', 'self', 'family', 'health'].map((c) => (
               <MenuItem key={c} value={c}>
                 {c[0].toUpperCase() + c.slice(1)}
               </MenuItem>
@@ -352,27 +338,17 @@ export default function EventForm({
           </Select>
         </FormControl>
 
-        {error && <Box sx={{ color: "error.main", fontSize: 14 }}>{error}</Box>}
+        {error && <Box sx={{ color: 'error.main', fontSize: 14 }}>{error}</Box>}
 
-        <Box
-          sx={{ display: "flex", justifyContent: "flex-end", gap: 1, mt: 1 }}
-        >
-          <Button
-            variant="outlined"
-            onClick={handleCancel}
-            disabled={isSubmitting}
-          >
+        <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1, mt: 1 }}>
+          <Button variant="outlined" onClick={handleCancel} disabled={isSubmitting}>
             Cancel
           </Button>
           <Button type="submit" variant="contained" disabled={isSubmitting}>
-            {isSubmitting
-              ? "Saving..."
-              : initialEvent
-                ? "Save Changes"
-                : "Create Event"}
+            {isSubmitting ? 'Saving...' : initialEvent ? 'Save Changes' : 'Create Event'}
           </Button>
         </Box>
       </Stack>
     </form>
-  );
+  )
 }

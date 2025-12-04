@@ -1,6 +1,6 @@
-"use client";
+'use client'
 
-import { useState, useEffect, FormEvent } from "react";
+import { useState, useEffect, FormEvent } from 'react'
 import {
   Box,
   TextField,
@@ -9,99 +9,94 @@ import {
   Button,
   Stack,
   Alert,
-  MenuItem,        // ⬅️ NEW
-} from "@mui/material";
-import { useRouter } from "next/navigation";
+  MenuItem, // ⬅️ NEW
+} from '@mui/material'
+import { useRouter } from 'next/navigation'
 
-const STATUS_OPTIONS = ["Open", "Needs Watch", "Resolved"] as const;
+const STATUS_OPTIONS = ['Open', 'Needs Watch', 'Resolved'] as const
 
 type LogicFormProps = {
-  eventId: string;
-  logicId?: string;
+  eventId: string
+  logicId?: string
   initialData?: {
-    title?: string;
-    description?: string;
-    importance: number;
-    status: string;
-    facts: string;
-    assumptions: string;
-    patterns: string;
-    actions: string;
-  };
-  mode?: "create" | "edit";
-  onSuccess?: () => void;
-};
+    title?: string
+    description?: string
+    importance: number
+    status: string
+    facts: string
+    assumptions: string
+    patterns: string
+    actions: string
+  }
+  mode?: 'create' | 'edit'
+  onSuccess?: () => void
+  onCancel?: () => void
+}
 
 export default function LogicForm({
   eventId,
   logicId,
   initialData,
-  mode = "create",
+  mode = 'create',
   onSuccess,
+  onCancel,
 }: LogicFormProps) {
-  const router = useRouter();
+  const router = useRouter()
 
-  const [title, setTitle] = useState(initialData?.title ?? "");
-  const [description, setDescription] = useState(
-    initialData?.description ?? ""
-  );
+  const [title, setTitle] = useState(initialData?.title ?? '')
+  const [description, setDescription] = useState(initialData?.description ?? '')
 
-  const [importance, setImportance] = useState(initialData?.importance ?? 5);
+  const [importance, setImportance] = useState(initialData?.importance ?? 5)
   const [status, setStatus] = useState(
-    initialData?.status ?? "Open"            // ⬅️ default to "Open"
-  );
-  const [facts, setFacts] = useState(initialData?.facts ?? "");
-  const [assumptions, setAssumptions] = useState(
-    initialData?.assumptions ?? ""
-  );
-  const [patterns, setPatterns] = useState(initialData?.patterns ?? "");
-  const [actions, setActions] = useState(initialData?.actions ?? "");
+    initialData?.status ?? 'Open', // ⬅️ default to "Open"
+  )
+  const [facts, setFacts] = useState(initialData?.facts ?? '')
+  const [assumptions, setAssumptions] = useState(initialData?.assumptions ?? '')
+  const [patterns, setPatterns] = useState(initialData?.patterns ?? '')
+  const [actions, setActions] = useState(initialData?.actions ?? '')
 
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    if (mode === "edit" && initialData) {
-      setTitle(initialData.title ?? "");
-      setDescription(initialData.description ?? "");
-      setImportance(initialData.importance);
-      setStatus(initialData.status || "Open");
-      setFacts(initialData.facts);
-      setAssumptions(initialData.assumptions);
-      setPatterns(initialData.patterns);
-      setActions(initialData.actions);
+    if (mode === 'edit' && initialData) {
+      setTitle(initialData.title ?? '')
+      setDescription(initialData.description ?? '')
+      setImportance(initialData.importance)
+      setStatus(initialData.status || 'Open')
+      setFacts(initialData.facts)
+      setAssumptions(initialData.assumptions)
+      setPatterns(initialData.patterns)
+      setActions(initialData.actions)
     }
 
-    if (mode === "create" && !initialData) {
-      setTitle("");
-      setDescription("");
-      setImportance(5);
-      setStatus("Open");
-      setFacts("");
-      setAssumptions("");
-      setPatterns("");
-      setActions("");
+    if (mode === 'create' && !initialData) {
+      setTitle('')
+      setDescription('')
+      setImportance(5)
+      setStatus('Open')
+      setFacts('')
+      setAssumptions('')
+      setPatterns('')
+      setActions('')
     }
-  }, [initialData, mode]);
+  }, [initialData, mode])
 
   const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
-    setError(null);
-    setIsSubmitting(true);
+    e.preventDefault()
+    setError(null)
+    setIsSubmitting(true)
 
     try {
-      const endpoint =
-        mode === "create"
-          ? `/api/events/${eventId}/logic`
-          : `/api/logic/${logicId}`;
+      const endpoint = mode === 'create' ? `/api/events/${eventId}/logic` : `/api/logic/${logicId}`
 
-      if (mode === "edit" && !logicId) {
-        throw new Error("Missing logicId for edit mode");
+      if (mode === 'edit' && !logicId) {
+        throw new Error('Missing logicId for edit mode')
       }
 
       const res = await fetch(endpoint, {
-        method: mode === "create" ? "POST" : "PUT",
-        headers: { "Content-Type": "application/json" },
+        method: mode === 'create' ? 'POST' : 'PUT',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           title,
           description,
@@ -112,21 +107,21 @@ export default function LogicForm({
           patterns,
           actions,
         }),
-      });
+      })
 
       if (!res.ok) {
-        const data = await res.json().catch(() => null);
-        throw new Error(data?.error || "Failed to save logic");
+        const data = await res.json().catch(() => null)
+        throw new Error(data?.error || 'Failed to save logic')
       }
 
-      router.refresh();
-      onSuccess?.();
+      router.refresh()
+      onSuccess?.()
     } catch (err: any) {
-      setError(err.message || "Something went wrong");
+      setError(err.message || 'Something went wrong')
     } finally {
-      setIsSubmitting(false);
+      setIsSubmitting(false)
     }
-  };
+  }
 
   return (
     <Box component="form" onSubmit={handleSubmit} sx={{ mt: 1 }}>
@@ -151,9 +146,9 @@ export default function LogicForm({
         />
 
         {/* Status and Importance on same row (responsive) */}
-        <Box sx={{ display: "flex", gap: 2, flexDirection: { xs: "column", sm: "row" } }}>
+        <Box sx={{ display: 'flex', gap: 2, flexDirection: { xs: 'column', sm: 'row' } }}>
           {/* Left: Status */}
-          <Box sx={{ width: { xs: "100%", sm: "40%" } }}>
+          <Box sx={{ width: { xs: '100%', sm: '40%' } }}>
             <TextField
               select
               label="Status"
@@ -162,22 +157,22 @@ export default function LogicForm({
               fullWidth
               required
             >
-          {STATUS_OPTIONS.map((option) => (
-            <MenuItem key={option} value={option}>
-              {option}
-            </MenuItem>
-          ))}
+              {STATUS_OPTIONS.map((option) => (
+                <MenuItem key={option} value={option}>
+                  {option}
+                </MenuItem>
+              ))}
             </TextField>
           </Box>
 
           {/* Right: Importance (slider) */}
-          <Box sx={{ width: { xs: "100%", sm: "60%" } }}>
+          <Box sx={{ width: { xs: '100%', sm: '60%' } }}>
             <Typography gutterBottom>Importance (1–10)</Typography>
             <Slider
               aria-label="importance-slider"
               value={importance}
               onChange={(_, value) => {
-                if (typeof value === "number") setImportance(value);
+                if (typeof value === 'number') setImportance(value)
               }}
               step={1}
               min={1}
@@ -227,14 +222,17 @@ export default function LogicForm({
           minRows={3}
         />
 
-        <Box
-          sx={{ display: "flex", justifyContent: "flex-end", gap: 2, mt: 1 }}
-        >
+        <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2, mt: 1 }}>
+          {onCancel && (
+            <Button onClick={onCancel} disabled={isSubmitting}>
+              Close
+            </Button>
+          )}
           <Button type="submit" variant="contained" disabled={isSubmitting}>
-            {mode === "create" ? "Add Logic" : "Save Changes"}
+            {mode === 'create' ? 'Add Logic' : 'Save Changes'}
           </Button>
         </Box>
       </Stack>
     </Box>
-  );
+  )
 }

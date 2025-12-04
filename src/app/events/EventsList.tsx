@@ -17,11 +17,14 @@ import {
   DialogActions,
   Button,
   Divider,
+  Menu,
+  MenuItem,
 } from "@mui/material";
 import type { Event as PrismaEvent } from "@prisma/client";
 import Link from "next/link";
 import { IconButton } from "@mui/material";
-import DeleteIcon from "@mui/icons-material/Delete";
+import MoreVertIcon from "@mui/icons-material/MoreVert";
+import EventForm from "./EventForm";
 import SortIcon from "@mui/icons-material/Sort";
 
 type EventsListProps = {
@@ -40,8 +43,46 @@ export default function EventsList({ events }: EventsListProps) {
   const [isDeleting, setIsDeleting] = useState(false);
   const [sortOrder, setSortOrder] = useState<"desc" | "asc">("desc");
 
+  // menu state for options (edit/delete)
+  const [menuAnchorEl, setMenuAnchorEl] = useState<HTMLElement | null>(null);
+  const [menuEvent, setMenuEvent] = useState<PrismaEvent | null>(null);
+
+  // edit dialog state
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [editEvent, setEditEvent] = useState<PrismaEvent | null>(null);
+
   const openDeleteDialog = (event: PrismaEvent) => {
     setDeleteTarget({ id: event.id, title: event.title });
+  };
+
+  const openMenu = (e: any, event: PrismaEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setMenuAnchorEl(e.currentTarget);
+    setMenuEvent(event);
+  };
+
+  const closeMenu = () => {
+    setMenuAnchorEl(null);
+    setMenuEvent(null);
+  };
+
+  const handleMenuEdit = () => {
+    if (!menuEvent) return;
+    setEditEvent(menuEvent);
+    setEditDialogOpen(true);
+    closeMenu();
+  };
+
+  const handleMenuDelete = () => {
+    if (!menuEvent) return;
+    openDeleteDialog(menuEvent);
+    closeMenu();
+  };
+
+  const closeEditDialog = () => {
+    setEditDialogOpen(false);
+    setEditEvent(null);
   };
 
   const handleCloseDialog = () => {
@@ -185,17 +226,13 @@ export default function EventsList({ events }: EventsListProps) {
                     </Box>
                   </Box>
 
-                  {/* Delete button in upper right */}
+                  {/* Options menu in upper right: Edit / Delete */}
                   <IconButton
-                    aria-label={`delete-event-${event.id}`}
+                    aria-label={`options-event-${event.id}`}
                     size="small"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      openDeleteDialog(event);
-                    }}
+                    onClick={(e) => openMenu(e, event)}
                   >
-                    <DeleteIcon fontSize="small" />
+                    <MoreVertIcon fontSize="small" />
                   </IconButton>
                 </Box>
 
@@ -273,6 +310,51 @@ export default function EventsList({ events }: EventsListProps) {
           </Link>
         ))}
       </Stack>
+
+      {/* Options menu (single instance anchored to clicked item) */}
+      <Menu
+        anchorEl={menuAnchorEl}
+        open={Boolean(menuAnchorEl)}
+        onClose={closeMenu}
+        anchorOrigin={{ vertical: "top", horizontal: "right" }}
+        transformOrigin={{ vertical: "top", horizontal: "right" }}
+      >
+        <MenuItem
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            handleMenuEdit();
+          }}
+        >
+          Edit
+        </MenuItem>
+        <MenuItem
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            handleMenuDelete();
+          }}
+        >
+          Delete
+        </MenuItem>
+      </Menu>
+
+      {/* Edit dialog using EventForm */}
+      <Dialog open={editDialogOpen} onClose={closeEditDialog} fullWidth maxWidth="sm">
+        <DialogTitle>Edit Event</DialogTitle>
+        <DialogContent dividers>
+          {editEvent && (
+            <EventForm
+              event={editEvent}
+              onSuccess={() => {
+                closeEditDialog();
+                router.refresh();
+              }}
+              onCancel={closeEditDialog}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
 
       {/* Delete confirmation dialog */}
       <Dialog
