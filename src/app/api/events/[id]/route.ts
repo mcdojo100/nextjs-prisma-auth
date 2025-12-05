@@ -71,20 +71,20 @@ export async function PUT(req: NextRequest, context: RouteContext) {
     // Prevent circular parent relationships (A -> ... -> A)
     // Walk up the parent chain from the proposed parent and ensure we never reach the current event `id`.
     // Limit traversal to a sane number to avoid pathological loops.
-    let currentParentId: string | null = parentEvent.parentEventId ?? null
+    let ancestorId: string | null = parentEvent.parentEventId ?? null
     const MAX_CHAIN = 100
     let steps = 0
-    while (currentParentId) {
-      if (currentParentId === id) {
+    while (ancestorId) {
+      if (ancestorId === id) {
         return NextResponse.json(
           { error: 'Circular parent relationship detected' },
           { status: 400 },
         )
       }
       // fetch the next parent in the chain
-      const next = await db.event.findUnique({ where: { id: currentParentId } })
+      const next = await db.event.findUnique({ where: { id: ancestorId } })
       if (!next) break
-      currentParentId = next.parentEventId ?? null
+      ancestorId = next.parentEventId ?? null
       steps += 1
       if (steps >= MAX_CHAIN) {
         return NextResponse.json({ error: 'Parent chain too deep or cyclic' }, { status: 400 })
