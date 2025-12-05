@@ -37,7 +37,7 @@ export default function EventTabs({ eventId, logics, subEvents }: EventTabsProps
   const [viewDialogOpen, setViewDialogOpen] = useState(false)
   const [viewEvent, setViewEvent] = useState<Event | null>(null)
 
-  // menu & delete state for sub-event options (position-based)
+  // menu & delete state for Sub Event options (position-based)
   const [menuState, setMenuState] = useState<{
     mouseX: number
     mouseY: number
