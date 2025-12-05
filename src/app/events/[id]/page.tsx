@@ -36,7 +36,7 @@ export default async function EventDetailPage({ params }: PageProps) {
 
   // 3) Fetch Sub-events (child events)
   const subEvents = await db.event.findMany({
-    where: { parentEventId: id },
+    where: { parentEventId: id, userId: event.userId },
     orderBy: { createdAt: 'desc' },
   })
 
