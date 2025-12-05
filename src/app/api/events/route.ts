@@ -32,7 +32,7 @@ export async function POST(req: Request) {
     )
   }
   // Validate parentEventId if provided: parent must exist and belong to the same user
-  if (parentEventId) {
+  if (parentEventId !== undefined && parentEventId !== null) {
     const parentEvent = await db.event.findUnique({ where: { id: parentEventId } })
     if (!parentEvent) {
       return NextResponse.json({ error: 'Parent event not found' }, { status: 400 })
