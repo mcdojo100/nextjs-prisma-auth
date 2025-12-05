@@ -38,7 +38,7 @@ export default function EventTabs({ eventId, logics, subEvents }: EventTabsProps
   const [viewDialogOpen, setViewDialogOpen] = useState(false)
   const [viewEvent, setViewEvent] = useState<Event | null>(null)
 
-  // menu & delete state for sub-event options (position-based)
+  // menu & delete state for Sub Event options (position-based)
   const [menuState, setMenuState] = useState<{
     mouseX: number
     mouseY: number
@@ -263,7 +263,7 @@ export default function EventTabs({ eventId, logics, subEvents }: EventTabsProps
             <DialogTitle id="delete-subevent-dialog">Delete Sub Event</DialogTitle>
             <DialogContent>
               <DialogContentText>
-                Are you sure you want to delete this sub-event? This action cannot be undone.
+                Are you sure you want to delete this Sub Event? This action cannot be undone.
               </DialogContentText>
             </DialogContent>
             <DialogActions>
