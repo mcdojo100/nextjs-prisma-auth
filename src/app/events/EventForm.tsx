@@ -145,9 +145,9 @@ export default function EventForm({
         setCategory('')
       }
 
-      // Only navigate back to the list when creating a new top-level event.
-      // If creating a sub-event (parentEventId provided), do not navigate away;
-      // let the parent component handle closing/refreshing.
+      // When creating a new event: only navigate to /events list if it's a top-level event.
+      // For sub-events, let the parent component handle navigation via onSuccess callback.
+      // When editing, stay on the same page and just refresh data.
       if (!initialEvent) {
         if (!parentEventId) {
           router.push('/events')
