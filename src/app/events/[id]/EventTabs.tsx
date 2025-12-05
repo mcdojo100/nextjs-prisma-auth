@@ -22,11 +22,11 @@ import { Dialog, DialogTitle, DialogContent } from '@mui/material'
 import MoreVertIcon from '@mui/icons-material/MoreVert'
 import EventForm from '../EventForm'
 import LogicWorkspace from './LogicWorkspace'
-import { Event } from '@prisma/client'
+import { Event, Logic } from '@prisma/client'
 
 type EventTabsProps = {
   eventId: string
-  logics: any[]
+  logics: Logic[]
   subEvents: Event[]
 }
 
