@@ -90,10 +90,11 @@ export default function EventTabs({ eventId, logics, subEvents }: EventTabsProps
     } catch (err) {
       console.error(err)
       // Provide user-facing error feedback
-      try {
-        const data = await (err instanceof Error ? null : null)
-      } catch {}
-      setDeleteError('Failed to delete sub-event. Please try again.')
+      let errorMsg = 'Failed to delete sub-event. Please try again.'
+      if (err instanceof Error && err.message) {
+        errorMsg += ` (${err.message})`
+      }
+      setDeleteError(errorMsg)
     } finally {
       setIsDeleting(false)
     }
