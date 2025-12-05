@@ -16,6 +16,7 @@ import {
   Menu,
   MenuItem,
   DialogActions,
+  Alert,
   DialogContentText,
 } from '@mui/material'
 import { Dialog, DialogTitle, DialogContent } from '@mui/material'
@@ -41,12 +42,13 @@ export default function EventTabs({ eventId, logics, subEvents }: EventTabsProps
   const [menuState, setMenuState] = useState<{
     mouseX: number
     mouseY: number
-    eventId: string
+    subEventId: string
   } | null>(null)
 
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null)
   const [isDeleting, setIsDeleting] = useState(false)
+  const [deleteError, setDeleteError] = useState<string | null>(null)
 
   const openMenu = (e: ReactMouseEvent<HTMLElement>, evId: string) => {
     e.preventDefault()
@@ -55,7 +57,7 @@ export default function EventTabs({ eventId, logics, subEvents }: EventTabsProps
     setMenuState({
       mouseX: e.clientX,
       mouseY: e.clientY,
-      eventId: evId,
+      subEventId: evId,
     })
   }
 
@@ -78,6 +80,7 @@ export default function EventTabs({ eventId, logics, subEvents }: EventTabsProps
   const confirmDelete = async () => {
     if (!deleteTargetId) return
     setIsDeleting(true)
+    setDeleteError(null)
     try {
       const res = await fetch(`/api/events/${deleteTargetId}`, { method: 'DELETE' })
       if (!res.ok) throw new Error('Delete failed')
@@ -86,6 +89,11 @@ export default function EventTabs({ eventId, logics, subEvents }: EventTabsProps
       router.refresh()
     } catch (err) {
       console.error(err)
+      // Provide user-facing error feedback
+      try {
+        const data = await (err instanceof Error ? null : null)
+      } catch {}
+      setDeleteError('Failed to delete sub-event. Please try again.')
     } finally {
       setIsDeleting(false)
     }
@@ -134,6 +142,12 @@ export default function EventTabs({ eventId, logics, subEvents }: EventTabsProps
               + New Sub Event
             </Button>
           </Box>
+
+          {deleteError && (
+            <Box sx={{ mb: 1 }}>
+              <Alert severity="error">{deleteError}</Alert>
+            </Box>
+          )}
 
           {subEvents.length === 0 ? (
             <Typography color="text.secondary">No sub events yet.</Typography>
@@ -218,9 +232,9 @@ export default function EventTabs({ eventId, logics, subEvents }: EventTabsProps
                 e.preventDefault()
                 e.stopPropagation()
                 if (!menuState) return
-                const eventId = menuState.eventId
+                const subEventId = menuState.subEventId
                 closeMenu()
-                handleMenuEdit(eventId)
+                handleMenuEdit(subEventId)
               }}
             >
               Edit
@@ -230,9 +244,9 @@ export default function EventTabs({ eventId, logics, subEvents }: EventTabsProps
                 e.preventDefault()
                 e.stopPropagation()
                 if (!menuState) return
-                const eventId = menuState.eventId
+                const subEventId = menuState.subEventId
                 closeMenu()
-                handleMenuDelete(eventId)
+                handleMenuDelete(subEventId)
               }}
             >
               Delete

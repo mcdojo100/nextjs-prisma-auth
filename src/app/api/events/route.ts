@@ -31,6 +31,16 @@ export async function POST(req: Request) {
       { status: 400 },
     )
   }
+  // Validate parentEventId if provided: parent must exist and belong to the same user
+  if (parentEventId) {
+    const parentEvent = await db.event.findUnique({ where: { id: parentEventId } })
+    if (!parentEvent) {
+      return NextResponse.json({ error: 'Parent event not found' }, { status: 400 })
+    }
+    if (parentEvent.userId !== session.user.id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+  }
   const event = await db.event.create({
     // cast the `data` object to any so TypeScript matches the current prisma client schema reliably
     data: {
