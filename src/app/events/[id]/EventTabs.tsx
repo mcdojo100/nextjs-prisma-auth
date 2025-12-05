@@ -65,15 +65,15 @@ export default function EventTabs({ eventId, logics, subEvents }: EventTabsProps
     setMenuState(null)
   }
 
-  const handleMenuEdit = (eventId: string) => {
-    const ev = subEvents.find((s) => s.id === eventId)
+  const handleMenuEdit = (subEventId: string) => {
+    const ev = subEvents.find((s) => s.id === subEventId)
     if (!ev) return
     setViewEvent(ev)
     setViewDialogOpen(true)
   }
 
-  const handleMenuDelete = (eventId: string) => {
-    setDeleteTargetId(eventId)
+  const handleMenuDelete = (subEventId: string) => {
+    setDeleteTargetId(subEventId)
     setDeleteDialogOpen(true)
   }
 
@@ -291,7 +291,7 @@ export default function EventTabs({ eventId, logics, subEvents }: EventTabsProps
             <DialogContent dividers>
               {viewEvent && (
                 <EventForm
-                  event={viewEvent as any}
+                  event={viewEvent}
                   onSuccess={() => {
                     setViewDialogOpen(false)
                     router.refresh()

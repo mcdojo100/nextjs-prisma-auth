@@ -40,17 +40,6 @@ export default async function EventDetailPage({ params }: PageProps) {
     orderBy: { createdAt: 'desc' },
   })
 
-  // Serialize Date fields to plain strings so they can be passed into client components
-  const serializableEvent = {
-    ...event,
-    createdAt: event.createdAt ? event.createdAt.toISOString() : null,
-    updatedAt: event.updatedAt ? event.updatedAt.toISOString() : null,
-  }
-
-  const serializableLogics = [...logics]
-
-  const serializableSubEvents: Event[] = [...subEvents]
-
   return (
     <Box sx={{ mt: 2 }}>
       {/* Header: Event title + actions */}
@@ -96,13 +85,13 @@ export default async function EventDetailPage({ params }: PageProps) {
           <Link href="/events">
             <Button variant="text">← Back to Events</Button>
           </Link>
-          <EditEventDialog event={serializableEvent as any} />
+          <EditEventDialog event={event} />
         </Box>
       </Box>
 
       <Divider sx={{ mb: 3 }} />
 
-      <EventTabs eventId={event.id} logics={serializableLogics} subEvents={serializableSubEvents} />
+      <EventTabs eventId={event.id} logics={logics} subEvents={subEvents} />
     </Box>
   )
 }
