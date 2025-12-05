@@ -249,7 +249,7 @@ export default function EventTabs({ eventId, logics, subEvents }: EventTabsProps
             <DialogTitle id="delete-subevent-dialog">Delete Sub Event</DialogTitle>
             <DialogContent>
               <DialogContentText>
-                Are you sure you want to delete this sub-event? This action cannot be undone.
+                Are you sure you want to delete this Sub Event? This action cannot be undone.
               </DialogContentText>
             </DialogContent>
             <DialogActions>
