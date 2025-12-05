@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import type { MouseEvent as ReactMouseEvent } from 'react'
 import { useRouter } from 'next/navigation'
 import {
@@ -49,6 +49,19 @@ export default function EventTabs({ eventId, logics, subEvents }: EventTabsProps
   const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null)
   const [isDeleting, setIsDeleting] = useState(false)
   const [deleteError, setDeleteError] = useState<string | null>(null)
+
+  // Clear stale delete errors on mount, when switching tabs, or when delete dialog closes
+  useEffect(() => {
+    setDeleteError(null)
+  }, [])
+
+  useEffect(() => {
+    setDeleteError(null)
+  }, [tab])
+
+  useEffect(() => {
+    if (!deleteDialogOpen) setDeleteError(null)
+  }, [deleteDialogOpen])
 
   const openMenu = (e: ReactMouseEvent<HTMLElement>, evId: string) => {
     e.preventDefault()
