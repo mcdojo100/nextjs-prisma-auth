@@ -40,6 +40,9 @@ export async function POST(req: Request) {
     if (parentEvent.userId !== session.user.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
+    if (parentEvent.parentEventId) {
+      return NextResponse.json({ error: 'Cannot create sub-event under another sub-event' }, { status: 400 })
+    }
   }
   const event = await db.event.create({
     // cast the `data` object to any so TypeScript matches the current prisma client schema reliably
