@@ -87,6 +87,11 @@ model Event {
   user   User     @relation(fields: [userId], references: [id])
 
   logics    Logic[]
+
+    // Self-relation: parent event / sub-events
+  parentEventId String?
+  parentEvent   Event?   @relation("EventSubEvents", fields: [parentEventId], references: [id], onDelete: SetNull)
+  subEvents     Event[]  @relation("EventSubEvents")
 }
 
 model Logic {

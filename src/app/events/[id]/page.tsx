@@ -1,53 +1,71 @@
 // src/app/events/[id]/page.tsx
-import { notFound } from "next/navigation";
-import Link from "next/link";
-import { Box, Button, Typography, Divider, Chip } from "@mui/material";
-import { db } from "@/lib/db";
-import EditEventDialog from "./EditEventDialog";
-import LogicWorkspace from "./LogicWorkspace";
+import { notFound } from 'next/navigation'
+import Link from 'next/link'
+import { Box, Button, Typography, Divider, Chip } from '@mui/material'
+import { db } from '@/lib/db'
+import EditEventDialog from './EditEventDialog'
+import EventTabs from './EventTabs'
+import { Event } from '@prisma/client'
 
 type PageProps = {
   // Next 15/16: params is a Promise
-  params: Promise<{ id: string }>;
-};
+  params: Promise<{ id: string }>
+}
 
 export default async function EventDetailPage({ params }: PageProps) {
-  const { id } = await params;
+  const { id } = await params
 
   if (!id) {
-    notFound();
+    notFound()
   }
 
   // 1) Fetch the Event *without* include
   const event = await db.event.findUnique({
     where: { id },
-  });
+  })
 
   if (!event) {
-    notFound();
+    notFound()
   }
 
   // 2) Fetch the Logics for this Event separately
   const logics = await db.logic.findMany({
     where: { eventId: id },
-    orderBy: { createdAt: "desc" },
-  });
+    orderBy: { createdAt: 'desc' },
+  })
+
+  // 3) Fetch Sub-events (child events)
+  const subEvents = await db.event.findMany({
+    where: { parentEventId: id },
+    orderBy: { createdAt: 'desc' },
+  })
+
+  // Serialize Date fields to plain strings so they can be passed into client components
+  const serializableEvent = {
+    ...event,
+    createdAt: event.createdAt ? event.createdAt.toISOString() : null,
+    updatedAt: event.updatedAt ? event.updatedAt.toISOString() : null,
+  }
+
+  const serializableLogics = [...logics]
+
+  const serializableSubEvents: Event[] = [...subEvents]
 
   return (
     <Box sx={{ mt: 2 }}>
       {/* Header: Event title + actions */}
       <Box
         sx={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
           mb: 3,
         }}
       >
         <Box>
           <Typography variant="h4">{event.title}</Typography>
           {event.createdAt && (
-            <Box sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
               <Typography variant="body2" color="text.secondary">
                 Created: {event.createdAt.toLocaleDateString()}
               </Typography>
@@ -56,18 +74,17 @@ export default async function EventDetailPage({ params }: PageProps) {
                   label={event.verificationStatus}
                   size="small"
                   color={
-                    event.verificationStatus === "Verified True"
-                      ? "success"
-                      : event.verificationStatus === "Verified False"
-                        ? "warning"
-                        : event.verificationStatus === "Pending"
-                          ? "info"
-                          : event.verificationStatus ===
-                              "True without Verification"
-                            ? "info"
-                            : event.verificationStatus === "Question Mark"
-                              ? "warning"
-                              : "default"
+                    event.verificationStatus === 'Verified True'
+                      ? 'success'
+                      : event.verificationStatus === 'Verified False'
+                        ? 'warning'
+                        : event.verificationStatus === 'Pending'
+                          ? 'info'
+                          : event.verificationStatus === 'True without Verification'
+                            ? 'info'
+                            : event.verificationStatus === 'Question Mark'
+                              ? 'warning'
+                              : 'default'
                   }
                 />
               )}
@@ -75,18 +92,17 @@ export default async function EventDetailPage({ params }: PageProps) {
           )}
         </Box>
 
-        <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
+        <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
           <Link href="/events">
             <Button variant="text">← Back to Events</Button>
           </Link>
-          <EditEventDialog event={event} />
+          <EditEventDialog event={serializableEvent as any} />
         </Box>
       </Box>
 
       <Divider sx={{ mb: 3 }} />
 
-      {/* Logic workspace gets the separate logics array */}
-      <LogicWorkspace eventId={event.id} logics={logics} />
+      <EventTabs eventId={event.id} logics={serializableLogics} subEvents={serializableSubEvents} />
     </Box>
-  );
+  )
 }

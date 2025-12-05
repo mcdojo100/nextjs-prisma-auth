@@ -21,9 +21,15 @@ type EventFormProps = {
   event?: PrismaEvent | null
   onSuccess?: () => void
   onCancel?: () => void
+  parentEventId?: string | null
 }
 
-export default function EventForm({ event: initialEvent, onSuccess, onCancel }: EventFormProps) {
+export default function EventForm({
+  event: initialEvent,
+  onSuccess,
+  onCancel,
+  parentEventId,
+}: EventFormProps) {
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   const [intensity, setIntensity] = useState<number>(5)
@@ -121,6 +127,7 @@ export default function EventForm({ event: initialEvent, onSuccess, onCancel }: 
             category,
             physicalSensations,
             verificationStatus,
+            parentEventId,
           }),
         })
 
@@ -138,9 +145,13 @@ export default function EventForm({ event: initialEvent, onSuccess, onCancel }: 
         setCategory('')
       }
 
-      // Only navigate back to the list when creating a new event.
+      // Only navigate back to the list when creating a new top-level event.
+      // If creating a sub-event (parentEventId provided), do not navigate away;
+      // let the parent component handle closing/refreshing.
       if (!initialEvent) {
-        router.push('/events')
+        if (!parentEventId) {
+          router.push('/events')
+        }
       } else {
         // When editing, stay on the same page and just refresh data.
         router.refresh()
