@@ -89,11 +89,14 @@ export default function EventTabs({ eventId, logics, subEvents }: EventTabsProps
       router.refresh()
     } catch (err) {
       console.error(err)
-      // Provide user-facing error feedback
-      try {
-        const data = await (err instanceof Error ? null : null)
-      } catch {}
-      setDeleteError('Failed to delete sub-event. Please try again.')
+      // Provide user-facing error feedback: prefer the error's message when available
+      let message = 'Failed to delete sub-event. Please try again.'
+      if (err && typeof err === 'object' && 'message' in err) {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore: narrow unknown to read .message
+        message = (err as any).message || message
+      }
+      setDeleteError(message)
     } finally {
       setIsDeleting(false)
     }

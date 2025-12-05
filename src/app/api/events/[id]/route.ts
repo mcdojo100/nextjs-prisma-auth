@@ -67,6 +67,29 @@ export async function PUT(req: NextRequest, context: RouteContext) {
     if (parentEvent.userId !== session.user.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
+
+    // Prevent circular parent relationships (A -> ... -> A)
+    // Walk up the parent chain from the proposed parent and ensure we never reach the current event `id`.
+    // Limit traversal to a sane number to avoid pathological loops.
+    let currentParentId: string | null = parentEvent.parentEventId ?? null
+    const MAX_CHAIN = 100
+    let steps = 0
+    while (currentParentId) {
+      if (currentParentId === id) {
+        return NextResponse.json(
+          { error: 'Circular parent relationship detected' },
+          { status: 400 },
+        )
+      }
+      // fetch the next parent in the chain
+      const next = await db.event.findUnique({ where: { id: currentParentId } })
+      if (!next) break
+      currentParentId = next.parentEventId ?? null
+      steps += 1
+      if (steps >= MAX_CHAIN) {
+        return NextResponse.json({ error: 'Parent chain too deep or cyclic' }, { status: 400 })
+      }
+    }
   }
 
   const updated = await db.event.update({
@@ -79,6 +102,8 @@ export async function PUT(req: NextRequest, context: RouteContext) {
       emotions: Array.isArray(emotions) ? emotions : [],
       physicalSensations: Array.isArray(physicalSensations) ? physicalSensations : [],
       category: category ?? null,
+      // allow updating the parent relationship when provided; if omitted, keep existing
+      parentEventId: parentEventId === undefined ? existing.parentEventId : (parentEventId ?? null),
       // ⭐ Only update verificationStatus if a valid string was provided;
       // otherwise keep the existing value.
       verificationStatus:

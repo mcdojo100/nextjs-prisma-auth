@@ -125,9 +125,16 @@ export default function EventsList({ events }: EventsListProps) {
   if (!parentEvents.length) {
     return (
       <Box sx={{ mt: 2 }}>
-        <Typography variant="body1">
-          You don&apos;t have any events yet. Click &quot;Create Event&quot; to add your first one.
-        </Typography>
+        {events.length > 0 ? (
+          <Typography variant="body1">
+            No parent events to display. Sub-events are shown under their parent events.
+          </Typography>
+        ) : (
+          <Typography variant="body1">
+            You don&apos;t have any events yet. Click &quot;Create Event&quot; to add your first
+            one.
+          </Typography>
+        )}
       </Box>
     )
   }
