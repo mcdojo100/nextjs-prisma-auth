@@ -120,7 +120,9 @@ export default function EventsList({ events }: EventsListProps) {
   })
 
   // Only show parent events (those without a parentEventId)
-  const parentEvents = sortedEvents.filter((e) => !e.parentEventId)
+  const parentEvents = sortedEvents.filter(
+    (e) => e.parentEventId === null || e.parentEventId === undefined
+  )
 
   if (!parentEvents.length) {
     return (
