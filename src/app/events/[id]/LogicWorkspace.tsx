@@ -1,7 +1,7 @@
 // src/app/events/[id]/LogicWorkspace.tsx
 'use client'
 
-import { useMemo, useState, type MouseEvent } from 'react'
+import { useEffect, useMemo, useState, type MouseEvent } from 'react'
 import {
   Box,
   Button,
@@ -45,6 +45,11 @@ export default function LogicWorkspace({ eventId, logics }: LogicWorkspaceProps)
   const [dialogOpen, setDialogOpen] = useState(false)
 
   const [sortOrder, setSortOrder] = useState<'desc' | 'asc'>('desc')
+  const [hasMounted, setHasMounted] = useState(false) // to avoid hydration issues with dates
+
+  useEffect(() => {
+    setHasMounted(true)
+  }, [])
 
   const selectedLogic = useMemo(
     () => logics.find((l) => l.id === selectedLogicId) || null,
@@ -88,8 +93,8 @@ export default function LogicWorkspace({ eventId, logics }: LogicWorkspaceProps)
 
   // sorted logics according to sortOrder
   const sortedLogics = [...logics].sort((a, b) => {
-    const ta = new Date(a.createdAt).getTime()
-    const tb = new Date(b.createdAt).getTime()
+    const ta = new Date(a.createdAt as any).getTime()
+    const tb = new Date(b.createdAt as any).getTime()
     return sortOrder === 'desc' ? tb - ta : ta - tb
   })
 
@@ -138,11 +143,17 @@ export default function LogicWorkspace({ eventId, logics }: LogicWorkspaceProps)
       router.refresh()
     } catch (err) {
       console.error('Delete failed', err)
-      // keep dialog open or close depending on preference
       closeDeleteDialog()
     } finally {
       setIsDeleting(false)
     }
+  }
+
+  // safe date formatter that only runs after mount
+  const formatCreatedAt = (createdAt: Date | string) => {
+    if (!hasMounted) return '' // render empty on first SSR + hydration
+    const d = createdAt instanceof Date ? createdAt : new Date(createdAt)
+    return d.toLocaleString() // now it's purely client-side
   }
 
   return (
@@ -177,7 +188,6 @@ export default function LogicWorkspace({ eventId, logics }: LogicWorkspaceProps)
           No Logic items yet. Click &quot;New Logic&quot; to add your first one.
         </Typography>
       ) : (
-        // sort logics by createdAt (newest first) to ensure consistent ordering
         <Stack spacing={1.5}>
           {sortedLogics.map((logic) => (
             <Card
@@ -241,7 +251,7 @@ export default function LogicWorkspace({ eventId, logics }: LogicWorkspaceProps)
 
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                     <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                      {new Date(logic.createdAt).toLocaleString()}
+                      {formatCreatedAt(logic.createdAt as any)}
                     </Typography>
                   </Box>
 
@@ -279,21 +289,26 @@ export default function LogicWorkspace({ eventId, logics }: LogicWorkspaceProps)
                 setSelectedLogicId(null)
               }
               setDialogOpen(false)
+              router.refresh()
             }}
             onCancel={handleCloseDialog}
           />
         </DialogContent>
       </Dialog>
+
       {/* Options menu for Edit/Delete (single shared menu) */}
       <Menu
         id="logic-options-menu"
         anchorEl={menuAnchorEl}
         open={Boolean(menuAnchorEl)}
-        onClose={(e: React.MouseEvent) => {
-          e.stopPropagation()
+        onClose={() => {
           closeMenu()
         }}
         onClick={(e) => e.stopPropagation()}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+        transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+        // disablePortal can help with nesting in dialogs/layouts if needed
+        // disablePortal
       >
         <MenuItem
           onClick={(e) => {
@@ -318,6 +333,7 @@ export default function LogicWorkspace({ eventId, logics }: LogicWorkspaceProps)
           Delete
         </MenuItem>
       </Menu>
+
       {/* Delete confirmation dialog */}
       <Dialog
         open={deleteDialogOpen}
