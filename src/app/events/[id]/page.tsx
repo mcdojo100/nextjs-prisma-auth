@@ -1,7 +1,7 @@
 // src/app/events/[id]/page.tsx
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
-import { Box, Button, Typography, Divider, Chip } from '@mui/material'
+import { Box, Button, Typography, Divider, Chip, Card, CardContent } from '@mui/material'
 import { db } from '@/lib/db'
 import EditEventDialog from './EditEventDialog'
 import EventTabs from './EventTabs'
@@ -40,24 +40,47 @@ export default async function EventDetailPage({ params }: PageProps) {
     orderBy: { createdAt: 'desc' },
   })
 
+  // src/app/events/[id]/page.tsx
+
   return (
-    <Box sx={{ mt: 2 }}>
-      {/* Header: Event title + actions */}
-      <Box
+    <Box sx={{ mt: 0 }}>
+      {/* Back button above the header */}
+      <Box sx={{ mb: 0 }}>
+        <Link href="/events">
+          <Button
+            variant="text"
+            startIcon={<span style={{ fontSize: '1.2rem' }}>←</span>}
+            sx={{ textTransform: 'none', px: 0 }}
+          >
+            Back to Events
+          </Button>
+        </Link>
+      </Box>
+
+      {/* Main event details - styled like a sub-event card */}
+      <Card
         sx={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
+          width: '100%',
+          position: 'relative',
+          borderColor: 'divider',
           mb: 3,
         }}
       >
-        <Box>
-          <Typography variant="h4">{event.title}</Typography>
-          {event.createdAt && (
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
-              <Typography variant="body2" color="text.secondary">
-                Created: {event.createdAt.toLocaleDateString()}
-              </Typography>
+        <CardContent sx={{ pr: 1 }}>
+          <Box
+            sx={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              mb: 0.5,
+              gap: 1,
+            }}
+          >
+            <Typography variant="subtitle1" noWrap>
+              {event.title}
+            </Typography>
+
+            <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
               {event.verificationStatus && (
                 <Chip
                   label={event.verificationStatus}
@@ -77,17 +100,34 @@ export default async function EventDetailPage({ params }: PageProps) {
                   }
                 />
               )}
-            </Box>
-          )}
-        </Box>
 
-        <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
-          <Link href="/events">
-            <Button variant="text">← Back to Events</Button>
-          </Link>
-          <EditEventDialog event={event} />
-        </Box>
-      </Box>
+              <EditEventDialog event={event} />
+            </Box>
+          </Box>
+
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+              {event.createdAt ? new Date(event.createdAt).toLocaleString() : ''}
+            </Typography>
+          </Box>
+
+          {event.description && (
+            <Typography
+              variant="body2"
+              color="text.secondary"
+              sx={{
+                display: '-webkit-box',
+                WebkitLineClamp: 2,
+                WebkitBoxOrient: 'vertical',
+                overflow: 'hidden',
+                mt: 0.5,
+              }}
+            >
+              {event.description}
+            </Typography>
+          )}
+        </CardContent>
+      </Card>
 
       <Divider sx={{ mb: 3 }} />
 

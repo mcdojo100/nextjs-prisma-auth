@@ -147,17 +147,30 @@ export default function EventTabs({ eventId, logics, subEvents }: EventTabsProps
     <Box>
       <Tabs value={tab} onChange={handleChange} aria-label="Event tabs" sx={{ mb: 2 }}>
         <Tab label="Sub Events" {...a11yProps(0)} />
-        <Tab label="Logics" {...a11yProps(1)} />
+        <Tab label="Analyses" {...a11yProps(1)} />
       </Tabs>
 
       <TabPanel value={tab} index={0}>
         <Box>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: { xs: 'column', sm: 'row' },
+              justifyContent: 'space-between',
+              alignItems: { xs: 'flex-start', sm: 'center' },
+              gap: 1.5,
+              mb: 2,
+            }}
+          >
             <Typography variant="h6">Sub Events</Typography>
+
             <Button
               variant="contained"
               size="small"
-              sx={{ height: '30.75px' }}
+              sx={{
+                height: '30.75px',
+                width: { xs: '100%', sm: 'auto' }, // full-width on mobile
+              }}
               onClick={() => setOpenCreate(true)}
             >
               + New Sub Event

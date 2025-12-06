@@ -164,27 +164,43 @@ export default function LogicWorkspace({ eventId, logics }: LogicWorkspaceProps)
       <Box
         sx={{
           display: 'flex',
+          flexDirection: { xs: 'column', sm: 'row' },
           justifyContent: 'space-between',
-          alignItems: 'center',
+          alignItems: { xs: 'flex-start', sm: 'center' },
+          gap: 1.5,
           mb: 2,
         }}
       >
-        <Typography variant="h6">Logic</Typography>
-        <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+        <Typography variant="h6">Analyses</Typography>
+
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: { xs: 'column', sm: 'row' },
+            gap: 1,
+            width: { xs: '100%', sm: 'auto' },
+            alignItems: { xs: 'stretch', sm: 'center' },
+          }}
+        >
           <Button
             size="small"
             startIcon={<SortIcon />}
             onClick={() => setSortOrder((s) => (s === 'desc' ? 'asc' : 'desc'))}
+            sx={{ width: { xs: '100%', sm: 'auto' } }}
           >
             {sortOrder === 'desc' ? 'Newest' : 'Oldest'}
           </Button>
+
           <Button
             variant="contained"
             size="small"
-            sx={{ height: '30.75px' }}
+            sx={{
+              height: '30.75px',
+              width: { xs: '100%', sm: 'auto' },
+            }}
             onClick={handleOpenCreate}
           >
-            + New Logic
+            + New Analysis
           </Button>
         </Box>
       </Box>
@@ -192,7 +208,7 @@ export default function LogicWorkspace({ eventId, logics }: LogicWorkspaceProps)
       {/* Logic cards list – full width of container */}
       {logics.length === 0 ? (
         <Typography variant="body2" color="text.secondary">
-          No Logic items yet. Click &quot;New Logic&quot; to add your first one.
+          No analyses yet. Click &quot;New Analysis&quot; to add your first one.
         </Typography>
       ) : (
         <Stack spacing={1.5}>
@@ -217,7 +233,7 @@ export default function LogicWorkspace({ eventId, logics }: LogicWorkspaceProps)
                     }}
                   >
                     <Typography variant="subtitle1" noWrap>
-                      {logic.title || 'Untitled logic'}
+                      {logic.title || 'Untitled analysis'}
                     </Typography>
                     <Box
                       sx={{
@@ -286,7 +302,7 @@ export default function LogicWorkspace({ eventId, logics }: LogicWorkspaceProps)
 
       {/* Dialog with LogicForm */}
       <Dialog open={dialogOpen} onClose={handleCloseDialog} fullWidth maxWidth="sm">
-        <DialogTitle>{formMode === 'create' ? 'New Logic' : 'Edit Logic'}</DialogTitle>
+        <DialogTitle>{formMode === 'create' ? 'New Analysis' : 'Edit Analysis'}</DialogTitle>
         <DialogContent dividers>
           <LogicForm
             eventId={eventId}
@@ -352,7 +368,7 @@ export default function LogicWorkspace({ eventId, logics }: LogicWorkspaceProps)
         <DialogContent>
           <DialogContentText id="delete-logic-dialog-description">
             {`Are you sure you want to delete "${
-              logics.find((l) => l.id === deleteTargetId)?.title || 'this logic'
+              logics.find((l) => l.id === deleteTargetId)?.title || 'this analysis'
             }"? This action cannot be undone.`}
           </DialogContentText>
         </DialogContent>

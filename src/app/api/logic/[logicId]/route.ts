@@ -1,25 +1,16 @@
 // src/app/api/logic/[logicId]/route.ts
-import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/lib/db";
+import { NextRequest, NextResponse } from 'next/server'
+import { db } from '@/lib/db'
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: Promise<{ logicId: string }> }
+  { params }: { params: Promise<{ logicId: string }> },
 ) {
-  const { logicId } = await params;
+  const { logicId } = await params
 
   try {
-    const body = await request.json();
-    const {
-      title,
-      description,
-      importance,
-      status,
-      facts,
-      assumptions,
-      patterns,
-      actions,
-    } = body;
+    const body = await request.json()
+    const { title, description, importance, status, facts, assumptions, patterns, actions } = body
 
     const logic = await db.logic.update({
       where: { id: logicId },
@@ -33,30 +24,27 @@ export async function PUT(
         patterns,
         actions,
       },
-    });
+    })
 
-    return NextResponse.json(logic, { status: 200 });
+    return NextResponse.json(logic, { status: 200 })
   } catch (err) {
-    console.error("Error updating logic:", err);
-    return NextResponse.json(
-      { error: "Failed to update logic" },
-      { status: 500 }
-    );
+    console.error('Error updating logic:', err)
+    return NextResponse.json({ error: 'Failed to update analysis' }, { status: 500 })
   }
 }
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: Promise<{ logicId: string }> }
+  { params }: { params: Promise<{ logicId: string }> },
 ) {
-  const { logicId } = await params;
+  const { logicId } = await params
 
   try {
     // Optionally, you could verify ownership / session here
-    await db.logic.delete({ where: { id: logicId } });
-    return NextResponse.json({ success: true }, { status: 200 });
+    await db.logic.delete({ where: { id: logicId } })
+    return NextResponse.json({ success: true }, { status: 200 })
   } catch (err) {
-    console.error("Error deleting logic:", err);
-    return NextResponse.json({ error: "Failed to delete logic" }, { status: 500 });
+    console.error('Error deleting logic:', err)
+    return NextResponse.json({ error: 'Failed to delete analysis' }, { status: 500 })
   }
 }
