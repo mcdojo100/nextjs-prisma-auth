@@ -173,7 +173,7 @@ export default function EventTabs({ eventId, logics, subEvents }: EventTabsProps
           {subEvents.length === 0 ? (
             <Typography color="text.secondary">No sub events yet.</Typography>
           ) : (
-            <Stack spacing={1}>
+            <Stack spacing={1.5}>
               {subEvents.map((s) => (
                 <Card
                   key={s.id}
@@ -238,18 +238,7 @@ export default function EventTabs({ eventId, logics, subEvents }: EventTabsProps
                         </Typography>
                       </Box>
 
-                      <Typography
-                        variant="body2"
-                        color="text.secondary"
-                        sx={{
-                          display: '-webkit-box',
-                          WebkitLineClamp: 2,
-                          WebkitBoxOrient: 'vertical',
-                          overflow: 'hidden',
-                        }}
-                      >
-                        {s.description ?? 'No description provided.'}
-                      </Typography>
+                      {/* Description removed to keep cards compact */}
                     </CardContent>
                   </CardActionArea>
                 </Card>

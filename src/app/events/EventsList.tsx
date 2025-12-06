@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import {
   Box,
   Card,
+  CardActionArea,
   CardContent,
   Stack,
   Typography,
@@ -16,7 +17,6 @@ import {
   DialogContentText,
   DialogActions,
   Button,
-  Divider,
   Menu,
   MenuItem,
 } from '@mui/material'
@@ -121,7 +121,7 @@ export default function EventsList({ events }: EventsListProps) {
 
   // Only show parent events (those without a parentEventId)
   const parentEvents = sortedEvents.filter(
-    (e) => e.parentEventId === null || e.parentEventId === undefined
+    (e) => e.parentEventId === null || e.parentEventId === undefined,
   )
 
   if (!parentEvents.length) {
@@ -153,152 +153,76 @@ export default function EventsList({ events }: EventsListProps) {
           Sort: {sortOrder === 'desc' ? 'Newest' : 'Oldest'}
         </Button>
       </Box>
-      <Stack spacing={2}>
+      <Stack spacing={1.5}>
         {parentEvents.map((event) => (
-          <Link key={event.id} href={`/events/${event.id}`} style={{ textDecoration: 'none' }}>
-            <Card
-              variant="outlined"
-              sx={{
-                borderRadius: 2,
-                borderColor: 'divider',
-                bgcolor: 'background.paper',
-                transition: 'all 0.15s ease-in-out',
-                '&:hover': {
-                  boxShadow: 3,
-                  borderColor: 'primary.main',
-                  transform: 'translateY(-2px)',
-                },
-              }}
-            >
-              <CardContent sx={{ pb: 2.5 }}>
-                {/* Top row: title + category + menu */}
+          <Card
+            key={event.id}
+            sx={{
+              width: '100%',
+              position: 'relative',
+              borderColor: 'divider',
+            }}
+          >
+            <CardActionArea component="div" onClick={() => router.push(`/events/${event.id}`)}>
+              <CardContent sx={{ pr: 1 }}>
                 <Box
                   sx={{
                     display: 'flex',
                     justifyContent: 'space-between',
-                    alignItems: 'flex-start',
-                    gap: 2,
-                    mb: 1.5,
+                    alignItems: 'center',
+                    gap: 1,
+                    mb: 0.5,
                   }}
                 >
                   <Box sx={{ minWidth: 0 }}>
-                    <Typography
-                      variant="h6"
-                      sx={{
-                        mb: 0.5,
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        whiteSpace: 'nowrap',
-                      }}
-                    >
+                    <Typography variant="subtitle1" noWrap>
                       {event.title}
                     </Typography>
 
-                    <Box
-                      sx={{
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: 0.5,
-                      }}
-                    >
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                       <Typography variant="caption" sx={{ color: 'text.secondary' }}>
                         {new Date(event.createdAt).toLocaleString()}
                       </Typography>
-                      {event.verificationStatus && (
-                        <Box>
-                          <Chip
-                            label={event.verificationStatus}
-                            size="small"
-                            color={
-                              event.verificationStatus === 'Verified True'
-                                ? 'success'
-                                : event.verificationStatus === 'Verified False'
-                                  ? 'warning'
-                                  : event.verificationStatus === 'Pending'
-                                    ? 'info'
-                                    : event.verificationStatus === 'True without Verification'
-                                      ? 'info'
-                                      : event.verificationStatus === 'Question Mark'
-                                        ? 'warning'
-                                        : 'default'
-                            }
-                          />
-                        </Box>
-                      )}
                     </Box>
                   </Box>
 
-                  {/* Options menu in upper right: Edit / Delete */}
-                  <IconButton
-                    aria-label={`options-event-${event.id}`}
-                    size="small"
-                    onClick={(e) => openMenu(e, event)}
-                  >
-                    <MoreVertIcon fontSize="small" />
-                  </IconButton>
-                </Box>
-
-                {/* Description */}
-                {event.description && (
-                  <Typography
-                    variant="body2"
-                    sx={{
-                      mb: 1.5,
-                      whiteSpace: 'pre-line',
-                    }}
-                  >
-                    {event.description}
-                  </Typography>
-                )}
-
-                {/* Divider + intensity / importance row */}
-                <Divider sx={{ mb: 1.5 }} />
-
-                {/* CHIP SECTIONS */}
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.25 }}>
-                  {/* Category */}
-                  {event.category && (
-                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.75 }}>
+                  {/* Options menu in upper right: Verification chip + Edit / Delete */}
+                  <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+                    {event.verificationStatus && (
                       <Chip
-                        label={event.category[0].toUpperCase() + event.category.slice(1)}
+                        label={event.verificationStatus}
                         size="small"
-                        sx={{ textTransform: 'capitalize' }}
+                        color={
+                          event.verificationStatus === 'Verified True'
+                            ? 'success'
+                            : event.verificationStatus === 'Verified False'
+                              ? 'warning'
+                              : event.verificationStatus === 'Pending'
+                                ? 'info'
+                                : event.verificationStatus === 'True without Verification'
+                                  ? 'info'
+                                  : event.verificationStatus === 'Question Mark'
+                                    ? 'warning'
+                                    : 'default'
+                        }
                       />
-                    </Box>
-                  )}
-
-                  {/* Intensity & Importance */}
-                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                    <Chip label={`Intensity: ${event.intensity}/10`} size="small" />
-                    <Chip label={`Importance: ${event.importance}/10`} size="small" />
+                    )}
+                    <IconButton
+                      aria-label={`options-event-${event.id}`}
+                      size="small"
+                      onClick={(e) => openMenu(e, event)}
+                    >
+                      <MoreVertIcon fontSize="small" />
+                    </IconButton>
                   </Box>
-
-                  {/* Emotions */}
-                  {(event.emotions?.length ?? 0) > 0 && (
-                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.75 }}>
-                      {event.emotions.map((emo) => (
-                        <Chip
-                          key={emo}
-                          label={emo}
-                          size="small"
-                          sx={{ textTransform: 'capitalize' }}
-                        />
-                      ))}
-                    </Box>
-                  )}
-
-                  {/* Physical sensations */}
-                  {(event.physicalSensations?.length ?? 0) > 0 && (
-                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.75 }}>
-                      {event.physicalSensations.map((ps) => (
-                        <Chip key={ps} label={ps} size="small" />
-                      ))}
-                    </Box>
-                  )}
                 </Box>
+
+                {/* Description removed to match compact card style */}
+
+                {/* (Removed chips + divider for a more compact card layout) */}
               </CardContent>
-            </Card>
-          </Link>
+            </CardActionArea>
+          </Card>
         ))}
       </Stack>
 

@@ -178,7 +178,12 @@ export default function LogicWorkspace({ eventId, logics }: LogicWorkspaceProps)
           >
             {sortOrder === 'desc' ? 'Newest' : 'Oldest'}
           </Button>
-          <Button variant="contained" size="small" onClick={handleOpenCreate}>
+          <Button
+            variant="contained"
+            size="small"
+            sx={{ height: '30.75px' }}
+            onClick={handleOpenCreate}
+          >
             + New Logic
           </Button>
         </Box>
@@ -257,18 +262,7 @@ export default function LogicWorkspace({ eventId, logics }: LogicWorkspaceProps)
                     </Typography>
                   </Box>
 
-                  <Typography
-                    variant="body2"
-                    color="text.secondary"
-                    sx={{
-                      display: '-webkit-box',
-                      WebkitLineClamp: 2,
-                      WebkitBoxOrient: 'vertical',
-                      overflow: 'hidden',
-                    }}
-                  >
-                    {logic.description ?? 'No description provided.'}
-                  </Typography>
+                  {/* Description removed to keep cards compact */}
                 </CardContent>
               </CardActionArea>
             </Card>
