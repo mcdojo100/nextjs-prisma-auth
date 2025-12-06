@@ -152,7 +152,12 @@ export default function EventTabs({ eventId, logics, subEvents }: EventTabsProps
         <Box>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
             <Typography variant="h6">Sub Events</Typography>
-            <Button variant="contained" onClick={() => setOpenCreate(true)}>
+            <Button
+              variant="contained"
+              size="small"
+              sx={{ height: '30.75px' }}
+              onClick={() => setOpenCreate(true)}
+            >
               + New Sub Event
             </Button>
           </Box>
