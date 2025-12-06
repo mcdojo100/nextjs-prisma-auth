@@ -199,7 +199,8 @@ export default function LogicWorkspace({ eventId, logics }: LogicWorkspaceProps)
                 borderColor: logic.id === selectedLogicId ? 'primary.main' : 'divider',
               }}
             >
-              <CardActionArea onClick={() => handleOpenEdit(logic.id)}>
+              {/* ⬅️ FIX: make CardActionArea a <div>, not a <button> */}
+              <CardActionArea component="div" onClick={() => handleOpenEdit(logic.id)}>
                 <CardContent sx={{ pr: 1 }}>
                   <Box
                     sx={{
@@ -307,8 +308,6 @@ export default function LogicWorkspace({ eventId, logics }: LogicWorkspaceProps)
         onClick={(e) => e.stopPropagation()}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
         transformOrigin={{ vertical: 'top', horizontal: 'right' }}
-        // disablePortal can help with nesting in dialogs/layouts if needed
-        // disablePortal
       >
         <MenuItem
           onClick={(e) => {
