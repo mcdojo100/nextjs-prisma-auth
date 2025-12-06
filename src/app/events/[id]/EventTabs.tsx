@@ -11,7 +11,9 @@ import {
   Stack,
   Typography,
   Card,
+  CardActionArea,
   CardContent,
+  Chip,
   IconButton,
   Menu,
   MenuItem,
@@ -175,44 +177,81 @@ export default function EventTabs({ eventId, logics, subEvents }: EventTabsProps
               {subEvents.map((s) => (
                 <Card
                   key={s.id}
-                  variant="outlined"
                   sx={{
-                    borderRadius: 2,
+                    width: '100%',
+                    position: 'relative',
                     borderColor: 'divider',
-                    bgcolor: 'background.paper',
-                    transition: 'all 0.15s ease-in-out',
-                    '&:hover': {
-                      boxShadow: 3,
-                      borderColor: 'primary.main',
-                      transform: 'translateY(-2px)',
-                    },
                   }}
                 >
-                  <CardContent
-                    sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+                  <CardActionArea
+                    component="div"
+                    onClick={() => {
+                      setViewEvent(s)
+                      setViewDialogOpen(true)
+                    }}
                   >
-                    <Box
-                      sx={{ cursor: 'pointer', flex: 1 }}
-                      onClick={() => {
-                        setViewEvent(s)
-                        setViewDialogOpen(true)
-                      }}
-                    >
-                      <Typography variant="subtitle1">{s.title || 'Untitled'}</Typography>
-                      <Typography variant="caption" color="text.secondary">
-                        {new Date(s.createdAt).toLocaleString()}
-                      </Typography>
-                    </Box>
-                    <Box>
-                      <IconButton
-                        size="small"
-                        aria-label={`subevent-options-${s.id}`}
-                        onClick={(e) => openMenu(e, s.id)}
+                    <CardContent sx={{ pr: 1 }}>
+                      <Box
+                        sx={{
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                          mb: 0.5,
+                        }}
                       >
-                        <MoreVertIcon fontSize="small" />
-                      </IconButton>
-                    </Box>
-                  </CardContent>
+                        <Typography variant="subtitle1" noWrap>
+                          {s.title || 'Untitled'}
+                        </Typography>
+                        <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+                          <Chip
+                            label={s.importance ? `Imp: ${s.importance}` : ''}
+                            size="small"
+                            color={
+                              s.importance >= 8
+                                ? 'error'
+                                : s.importance >= 6
+                                  ? 'warning'
+                                  : s.importance >= 4
+                                    ? 'info'
+                                    : 'success'
+                            }
+                            sx={{ display: s.importance ? 'inline-flex' : 'none' }}
+                          />
+                          <IconButton
+                            aria-label={`subevent-options-${s.id}`}
+                            size="small"
+                            onClick={(e) => openMenu(e, s.id)}
+                            aria-controls={menuState ? 'subevent-options-menu' : undefined}
+                            aria-haspopup="true"
+                            aria-expanded={
+                              menuState && menuState.subEventId === s.id ? 'true' : undefined
+                            }
+                          >
+                            <MoreVertIcon fontSize="small" />
+                          </IconButton>
+                        </Box>
+                      </Box>
+
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                          {new Date(s.createdAt).toLocaleString()}
+                        </Typography>
+                      </Box>
+
+                      <Typography
+                        variant="body2"
+                        color="text.secondary"
+                        sx={{
+                          display: '-webkit-box',
+                          WebkitLineClamp: 2,
+                          WebkitBoxOrient: 'vertical',
+                          overflow: 'hidden',
+                        }}
+                      >
+                        {s.description ?? 'No description provided.'}
+                      </Typography>
+                    </CardContent>
+                  </CardActionArea>
                 </Card>
               ))}
             </Stack>

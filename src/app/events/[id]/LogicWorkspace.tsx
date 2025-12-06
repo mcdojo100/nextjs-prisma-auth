@@ -38,7 +38,9 @@ type LogicWorkspaceProps = {
 }
 
 export default function LogicWorkspace({ eventId, logics }: LogicWorkspaceProps) {
-  const [selectedLogicId, setSelectedLogicId] = useState<string | null>(logics[0]?.id ?? null)
+  // Start with no selected logic so cards are only highlighted on hover
+  // editingLogicId tracks which logic is being edited for the dialog; it does not affect list styling
+  const [editingLogicId, setEditingLogicId] = useState<string | null>(null)
   const [mode, setMode] = useState<'view-edit' | 'create'>(
     logics.length > 0 ? 'view-edit' : 'create',
   )
@@ -52,8 +54,8 @@ export default function LogicWorkspace({ eventId, logics }: LogicWorkspaceProps)
   }, [])
 
   const selectedLogic = useMemo(
-    () => logics.find((l) => l.id === selectedLogicId) || null,
-    [logics, selectedLogicId],
+    () => logics.find((l) => l.id === editingLogicId) || null,
+    [logics, editingLogicId],
   )
 
   // Decide if the form is in create or edit mode
@@ -77,13 +79,13 @@ export default function LogicWorkspace({ eventId, logics }: LogicWorkspaceProps)
 
   const handleOpenCreate = () => {
     setMode('create')
-    setSelectedLogicId(null)
+    setEditingLogicId(null)
     setDialogOpen(true)
   }
 
   const handleOpenEdit = (logicId: string) => {
     setMode('view-edit')
-    setSelectedLogicId(logicId)
+    setEditingLogicId(logicId)
     setDialogOpen(true)
   }
 
@@ -192,11 +194,10 @@ export default function LogicWorkspace({ eventId, logics }: LogicWorkspaceProps)
           {sortedLogics.map((logic) => (
             <Card
               key={logic.id}
-              variant={logic.id === selectedLogicId ? 'outlined' : undefined}
               sx={{
                 width: '100%',
                 position: 'relative',
-                borderColor: logic.id === selectedLogicId ? 'primary.main' : 'divider',
+                borderColor: 'divider',
               }}
             >
               {/* ⬅️ FIX: make CardActionArea a <div>, not a <button> */}
@@ -287,7 +288,6 @@ export default function LogicWorkspace({ eventId, logics }: LogicWorkspaceProps)
             onSuccess={() => {
               if (formMode === 'create') {
                 setMode('create')
-                setSelectedLogicId(null)
               }
               setDialogOpen(false)
               router.refresh()
