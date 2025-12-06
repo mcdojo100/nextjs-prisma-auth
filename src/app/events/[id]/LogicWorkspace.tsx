@@ -262,7 +262,21 @@ export default function LogicWorkspace({ eventId, logics }: LogicWorkspaceProps)
                     </Typography>
                   </Box>
 
-                  {/* Description removed to keep cards compact */}
+                  {logic.description && (
+                    <Typography
+                      variant="body2"
+                      color="text.secondary"
+                      sx={{
+                        display: '-webkit-box',
+                        WebkitLineClamp: 2,
+                        WebkitBoxOrient: 'vertical',
+                        overflow: 'hidden',
+                        mt: 0.5,
+                      }}
+                    >
+                      {logic.description}
+                    </Typography>
+                  )}
                 </CardContent>
               </CardActionArea>
             </Card>

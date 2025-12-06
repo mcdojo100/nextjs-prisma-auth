@@ -238,7 +238,21 @@ export default function EventTabs({ eventId, logics, subEvents }: EventTabsProps
                         </Typography>
                       </Box>
 
-                      {/* Description removed to keep cards compact */}
+                      {s.description && (
+                        <Typography
+                          variant="body2"
+                          color="text.secondary"
+                          sx={{
+                            display: '-webkit-box',
+                            WebkitLineClamp: 2,
+                            WebkitBoxOrient: 'vertical',
+                            overflow: 'hidden',
+                            mt: 0.5,
+                          }}
+                        >
+                          {s.description}
+                        </Typography>
+                      )}
                     </CardContent>
                   </CardActionArea>
                 </Card>

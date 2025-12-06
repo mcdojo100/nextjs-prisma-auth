@@ -217,7 +217,21 @@ export default function EventsList({ events }: EventsListProps) {
                   </Box>
                 </Box>
 
-                {/* Description removed to match compact card style */}
+                {event.description && (
+                  <Typography
+                    variant="body2"
+                    color="text.secondary"
+                    sx={{
+                      display: '-webkit-box',
+                      WebkitLineClamp: 2,
+                      WebkitBoxOrient: 'vertical',
+                      overflow: 'hidden',
+                      mt: 0.5,
+                    }}
+                  >
+                    {event.description}
+                  </Typography>
+                )}
 
                 {/* (Removed chips + divider for a more compact card layout) */}
               </CardContent>
