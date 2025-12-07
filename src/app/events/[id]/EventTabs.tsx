@@ -23,6 +23,7 @@ import {
 } from '@mui/material'
 import { Dialog, DialogTitle, DialogContent } from '@mui/material'
 import MoreVertIcon from '@mui/icons-material/MoreVert'
+import SortIcon from '@mui/icons-material/Sort'
 import EventForm from '../EventForm'
 import LogicWorkspace from './LogicWorkspace'
 import { Event, Logic } from '@prisma/client'
@@ -36,6 +37,7 @@ type EventTabsProps = {
 export default function EventTabs({ eventId, logics, subEvents }: EventTabsProps) {
   const [tab, setTab] = useState(0)
   const [openCreate, setOpenCreate] = useState(false)
+  const [subSortOrder, setSubSortOrder] = useState<'desc' | 'asc'>('desc')
   const router = useRouter()
   const [viewDialogOpen, setViewDialogOpen] = useState(false)
   const [viewEvent, setViewEvent] = useState<Event | null>(null)
@@ -164,17 +166,27 @@ export default function EventTabs({ eventId, logics, subEvents }: EventTabsProps
           >
             <Typography variant="h6">Sub Events</Typography>
 
-            <Button
-              variant="contained"
-              size="small"
-              sx={{
-                height: '30.75px',
-                width: { xs: '100%', sm: 'auto' }, // full-width on mobile
-              }}
-              onClick={() => setOpenCreate(true)}
-            >
-              + New Sub Event
-            </Button>
+            <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+              <Button
+                size="small"
+                startIcon={<SortIcon />}
+                onClick={() => setSubSortOrder((s) => (s === 'desc' ? 'asc' : 'desc'))}
+                sx={{ width: { xs: '100%', sm: 'auto' } }}
+              >
+                {subSortOrder === 'desc' ? 'Newest' : 'Oldest'}
+              </Button>
+              <Button
+                variant="contained"
+                size="small"
+                sx={{
+                  height: '30.75px',
+                  width: { xs: '100%', sm: 'auto' }, // full-width on mobile
+                }}
+                onClick={() => setOpenCreate(true)}
+              >
+                + New Sub Event
+              </Button>
+            </Box>
           </Box>
 
           {deleteError && (
@@ -187,89 +199,95 @@ export default function EventTabs({ eventId, logics, subEvents }: EventTabsProps
             <Typography color="text.secondary">No sub events yet.</Typography>
           ) : (
             <Stack spacing={1.5}>
-              {subEvents.map((s) => (
-                <Card
-                  key={s.id}
-                  sx={{
-                    width: '100%',
-                    position: 'relative',
-                    borderColor: 'divider',
-                  }}
-                >
-                  <CardActionArea
-                    component="div"
-                    onClick={() => {
-                      setViewEvent(s)
-                      setViewDialogOpen(true)
+              {[...subEvents]
+                .sort((a, b) => {
+                  const ta = new Date(a.createdAt).getTime()
+                  const tb = new Date(b.createdAt).getTime()
+                  return subSortOrder === 'desc' ? tb - ta : ta - tb
+                })
+                .map((s) => (
+                  <Card
+                    key={s.id}
+                    sx={{
+                      width: '100%',
+                      position: 'relative',
+                      borderColor: 'divider',
                     }}
                   >
-                    <CardContent sx={{ pr: 1 }}>
-                      <Box
-                        sx={{
-                          display: 'flex',
-                          justifyContent: 'space-between',
-                          alignItems: 'center',
-                          mb: 0.5,
-                        }}
-                      >
-                        <Typography variant="subtitle1" noWrap>
-                          {s.title || 'Untitled'}
-                        </Typography>
-                        <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
-                          <Chip
-                            label={s.importance ? `Imp: ${s.importance}` : ''}
-                            size="small"
-                            color={
-                              s.importance >= 8
-                                ? 'error'
-                                : s.importance >= 6
-                                  ? 'warning'
-                                  : s.importance >= 4
-                                    ? 'info'
-                                    : 'success'
-                            }
-                            sx={{ display: s.importance ? 'inline-flex' : 'none' }}
-                          />
-                          <IconButton
-                            aria-label={`subevent-options-${s.id}`}
-                            size="small"
-                            onClick={(e) => openMenu(e, s.id)}
-                            aria-controls={menuState ? 'subevent-options-menu' : undefined}
-                            aria-haspopup="true"
-                            aria-expanded={
-                              menuState && menuState.subEventId === s.id ? 'true' : undefined
-                            }
-                          >
-                            <MoreVertIcon fontSize="small" />
-                          </IconButton>
-                        </Box>
-                      </Box>
-
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                          {new Date(s.createdAt).toLocaleString()}
-                        </Typography>
-                      </Box>
-
-                      {s.description && (
-                        <Typography
-                          variant="body2"
-                          color="text.secondary"
+                    <CardActionArea
+                      component="div"
+                      onClick={() => {
+                        setViewEvent(s)
+                        setViewDialogOpen(true)
+                      }}
+                    >
+                      <CardContent sx={{ pr: 1 }}>
+                        <Box
                           sx={{
-                            display: '-webkit-box',
-                            WebkitLineClamp: 2,
-                            WebkitBoxOrient: 'vertical',
-                            overflow: 'hidden',
-                            mt: 0.5,
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                            mb: 0.5,
                           }}
                         >
-                          {s.description}
-                        </Typography>
-                      )}
-                    </CardContent>
-                  </CardActionArea>
-                </Card>
-              ))}
+                          <Typography variant="subtitle1" noWrap>
+                            {s.title || 'Untitled'}
+                          </Typography>
+                          <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+                            <Chip
+                              label={s.importance ? `Imp: ${s.importance}` : ''}
+                              size="small"
+                              color={
+                                s.importance >= 8
+                                  ? 'error'
+                                  : s.importance >= 6
+                                    ? 'warning'
+                                    : s.importance >= 4
+                                      ? 'info'
+                                      : 'success'
+                              }
+                              sx={{ display: s.importance ? 'inline-flex' : 'none' }}
+                            />
+                            <IconButton
+                              aria-label={`subevent-options-${s.id}`}
+                              size="small"
+                              onClick={(e) => openMenu(e, s.id)}
+                              aria-controls={menuState ? 'subevent-options-menu' : undefined}
+                              aria-haspopup="true"
+                              aria-expanded={
+                                menuState && menuState.subEventId === s.id ? 'true' : undefined
+                              }
+                            >
+                              <MoreVertIcon fontSize="small" />
+                            </IconButton>
+                          </Box>
+                        </Box>
+
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                            {new Date(s.createdAt).toLocaleString()}
+                          </Typography>
+                        </Box>
+
+                        {s.description && (
+                          <Typography
+                            variant="body2"
+                            color="text.secondary"
+                            sx={{
+                              display: '-webkit-box',
+                              WebkitLineClamp: 2,
+                              WebkitBoxOrient: 'vertical',
+                              overflow: 'hidden',
+                              mt: 0.5,
+                            }}
+                          >
+                            {s.description}
+                          </Typography>
+                        )}
+                      </CardContent>
+                    </CardActionArea>
+                  </Card>
+                ))}
             </Stack>
           )}
 
