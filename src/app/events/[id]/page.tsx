@@ -1,9 +1,9 @@
 // src/app/events/[id]/page.tsx
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
-import { Box, Button, Typography, Divider, Chip, Card, CardContent } from '@mui/material'
+import { Box, Button, Typography, Divider, Chip } from '@mui/material'
+import EventHeaderCard from './EventHeaderCard'
 import { db } from '@/lib/db'
-import EditEventDialog from './EditEventDialog'
 import EventTabs from './EventTabs'
 import { Event } from '@prisma/client'
 
@@ -57,77 +57,8 @@ export default async function EventDetailPage({ params }: PageProps) {
         </Link>
       </Box>
 
-      {/* Main event details - styled like a sub-event card */}
-      <Card
-        sx={{
-          width: '100%',
-          position: 'relative',
-          borderColor: 'divider',
-          mb: 3,
-        }}
-      >
-        <CardContent sx={{ pr: 1 }}>
-          <Box
-            sx={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              mb: 0.5,
-              gap: 1,
-            }}
-          >
-            <Typography variant="subtitle1" noWrap>
-              {event.title}
-            </Typography>
-
-            <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
-              {event.verificationStatus && (
-                <Chip
-                  label={event.verificationStatus}
-                  size="small"
-                  color={
-                    event.verificationStatus === 'Verified True'
-                      ? 'success'
-                      : event.verificationStatus === 'Verified False'
-                        ? 'warning'
-                        : event.verificationStatus === 'Pending'
-                          ? 'info'
-                          : event.verificationStatus === 'True without Verification'
-                            ? 'info'
-                            : event.verificationStatus === 'Question Mark'
-                              ? 'warning'
-                              : 'default'
-                  }
-                />
-              )}
-
-              <EditEventDialog event={event} />
-            </Box>
-          </Box>
-
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-              {event.createdAt ? new Date(event.createdAt).toLocaleString() : ''}
-            </Typography>
-          </Box>
-
-          {event.description && (
-            <Typography
-              variant="body2"
-              color="text.secondary"
-              sx={{
-                display: '-webkit-box',
-                WebkitLineClamp: 2,
-                WebkitBoxOrient: 'vertical',
-                overflow: 'hidden',
-                mt: 0.5,
-              }}
-            >
-              {event.description}
-            </Typography>
-          )}
-        </CardContent>
-      </Card>
+      {/* Main event details - styled like a sub-event card (click to edit) */}
+      <EventHeaderCard event={event} />
 
       <Divider sx={{ mb: 3 }} />
 
