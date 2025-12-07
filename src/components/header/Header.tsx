@@ -136,7 +136,13 @@ const Header = ({ session }: { session: Session | null }) => {
           />
 
           <Box sx={{ flexGrow: 0, display: { xs: 'none', md: 'flex' } }}>
-            <Button variant="text" onClick={handleAuthClick}>
+            <Button
+              variant="contained"
+              color="secondary"
+              size="small"
+              onClick={handleAuthClick}
+              sx={{ textTransform: 'none', ml: 1, height: '30.75px' }}
+            >
               {isLoggedIn ? 'Sign Out' : 'Sign In'}
             </Button>
           </Box>
