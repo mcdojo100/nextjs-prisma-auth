@@ -119,7 +119,15 @@ export default function SubEventWorkspace({ eventId, subEvents }: Props) {
       >
         <Typography variant="h6">Sub Events</Typography>
 
-        <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: { xs: 'column', sm: 'row' },
+            gap: 1,
+            width: { xs: '100%', sm: 'auto' },
+            alignItems: { xs: 'stretch', sm: 'center' },
+          }}
+        >
           <Button
             size="small"
             startIcon={<SortIcon />}
