@@ -56,7 +56,7 @@ export default function EventForm({
       setImportance(initialEvent.importance)
       setEmotions(initialEvent.emotions ?? [])
       setPhysicalSensations(initialEvent.physicalSensations ?? [])
-      // Normalize existing database values to one of the UI options
+
       const statuses = [
         'Verified True',
         'Verified False',
@@ -65,11 +65,13 @@ export default function EventForm({
         'Question Mark',
         'Closed - Past/Unverified',
       ]
+
       const normalize = (s?: string) =>
         (s ?? '')
           .toString()
           .toLowerCase()
           .replace(/[^a-z0-9]/g, '')
+
       const mapStatus = (s?: string) => {
         const ns = normalize(s)
         if (!ns) return 'Pending'
@@ -79,6 +81,7 @@ export default function EventForm({
         })
         return found ?? 'Pending'
       }
+
       setVerificationStatus(mapStatus(initialEvent.verificationStatus))
       setCategory(initialEvent.category ?? '')
       setTags((initialEvent as any).tags ?? [])
@@ -111,26 +114,41 @@ export default function EventForm({
 
   const removeTag = (t: string) => setTags((prev) => prev.filter((x) => x !== t))
 
+  /**
+   * Upload to Vercel Blob
+   */
+  async function uploadToVercelBlob(files: File[]): Promise<string[]> {
+    const form = new FormData()
+    files.forEach((f) => form.append('file', f))
+
+    const res = await fetch('/api/upload', {
+      method: 'POST',
+      body: form,
+    })
+
+    if (!res.ok) throw new Error('Image upload failed.')
+
+    const data = await res.json()
+    return data.urls ?? []
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsSubmitting(true)
     setError(null)
 
     try {
-      let res: Response
-
-      // If there are selected files, upload them first and merge returned URLs
       let uploadedUrls: string[] = []
-      if (selectedFiles && selectedFiles.length > 0) {
-        const form = new FormData()
-        selectedFiles.forEach((f) => form.append('files', f))
-        const upl = await fetch('/api/uploads', { method: 'POST', body: form })
-        if (!upl.ok) throw new Error('Failed to upload images')
-        const du = await upl.json()
-        uploadedUrls = Array.isArray(du.urls) ? du.urls : []
+
+      // Upload selected images first
+      if (selectedFiles.length > 0) {
+        uploadedUrls = await uploadToVercelBlob(selectedFiles)
       }
 
+      // Combine old + new images
       const imagesToSend = Array.from(new Set([...(images ?? []), ...uploadedUrls]))
+
+      let res: Response
 
       if (initialEvent?.id) {
         // update existing
@@ -150,8 +168,6 @@ export default function EventForm({
             images: imagesToSend,
           }),
         })
-
-        if (!res.ok) throw new Error('Failed to update event')
       } else {
         // create new
         res = await fetch('/api/events', {
@@ -171,30 +187,15 @@ export default function EventForm({
             parentEventId,
           }),
         })
-
-        if (!res.ok) throw new Error('Failed to create event')
       }
 
-      if (!initialEvent) {
-        setTitle('')
-        setDescription('')
-        setIntensity(5)
-        setImportance(5)
-        setEmotions([])
-        setPhysicalSensations([])
-        setVerificationStatus('Pending')
-        setCategory('')
-      }
+      if (!res.ok) throw new Error('Failed to save event')
 
-      // When creating a new event: only navigate to /events list if it's a top-level event.
-      // For sub-events, let the parent component handle navigation via onSuccess callback.
-      // When editing, stay on the same page and just refresh data.
       if (!initialEvent) {
         if (!parentEventId) {
           router.push('/events')
         }
       } else {
-        // When editing, stay on the same page and just refresh data.
         router.refresh()
       }
 
@@ -208,9 +209,9 @@ export default function EventForm({
 
   const handleCancel = () => {
     if (onCancel) {
-      onCancel() // let parent do extra stuff if it wants (e.g., close dialog)
+      onCancel()
     } else {
-      router.push('/events') // default: go back to list
+      router.push('/events')
       router.refresh()
     }
   }
@@ -237,30 +238,30 @@ export default function EventForm({
         />
 
         <Box>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5, fontSize: 14 }}>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
             <span>Intensity</span>
             <span>{intensity}</span>
           </Box>
           <Slider
             value={intensity}
-            onChange={(_, value) => setIntensity(value as number)}
-            step={1}
+            onChange={(_, v) => setIntensity(v as number)}
             min={1}
             max={10}
+            step={1}
           />
         </Box>
 
         <Box>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5, fontSize: 14 }}>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
             <span>Importance</span>
             <span>{importance}</span>
           </Box>
           <Slider
             value={importance}
-            onChange={(_, value) => setImportance(value as number)}
-            step={1}
+            onChange={(_, v) => setImportance(v as number)}
             min={1}
             max={10}
+            step={1}
           />
         </Box>
 
@@ -300,16 +301,14 @@ export default function EventForm({
                   : (e.target.value as string[]),
               )
             }
-            renderValue={(selected) =>
-              (selected as string[]).length ? (selected as string[]).join(', ') : 'None'
-            }
+            renderValue={(sel) => sel.join(', ')}
             label="Emotions"
           >
             {['anger', 'sadness', 'anxiety', 'numbness', 'confusion', 'shame', 'hope', 'calm'].map(
               (emo) => (
                 <MenuItem key={emo} value={emo}>
                   <Checkbox checked={emotions.includes(emo)} />
-                  <ListItemText primary={emo[0].toUpperCase() + emo.slice(1)} />
+                  <ListItemText primary={emo} />
                 </MenuItem>
               ),
             )}
@@ -329,9 +328,7 @@ export default function EventForm({
                   : (e.target.value as string[]),
               )
             }
-            renderValue={(selected) =>
-              (selected as string[]).length ? (selected as string[]).join(', ') : 'None'
-            }
+            renderValue={(sel) => sel.join(', ')}
             label="Physical Sensations"
           >
             {[
@@ -362,18 +359,18 @@ export default function EventForm({
           >
             {['work', 'relationship', 'self', 'family', 'health'].map((c) => (
               <MenuItem key={c} value={c}>
-                {c[0].toUpperCase() + c.slice(1)}
+                {c}
               </MenuItem>
             ))}
           </Select>
         </FormControl>
 
-        {/* Tags input */}
+        {/* Tags */}
         <Box>
           <TextField
             label="Add tag"
-            placeholder="type and press Enter or comma"
             value={tagInput}
+            placeholder="type and press Enter"
             onChange={(e) => setTagInput(e.target.value)}
             onKeyDown={(e) => {
               if (e.key === 'Enter' || e.key === ',') {
@@ -384,31 +381,22 @@ export default function EventForm({
             fullWidth
             size="small"
           />
-
           <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap', mt: 1 }}>
-            {tags?.length > 0 &&
-              tags.map((t) => (
-                <Chip
-                  key={t}
-                  label={t}
-                  size="small"
-                  onDelete={() => removeTag(t)}
-                  sx={{ mr: 0.5, mb: 0.5 }}
-                />
-              ))}
+            {tags.map((t) => (
+              <Chip key={t} label={t} onDelete={() => removeTag(t)} size="small" />
+            ))}
           </Box>
         </Box>
 
-        {/* Image picker + previews */}
+        {/* Images */}
         <Box>
           <Button variant="contained" component="label">
-            Upload images
+            Upload Images
             <input
               hidden
-              id="event-images"
-              accept="image/*"
               multiple
               type="file"
+              accept="image/*"
               onChange={(e) => {
                 const files = Array.from(e.target.files ?? [])
                 setSelectedFiles(files)
@@ -420,10 +408,9 @@ export default function EventForm({
 
           <Box sx={{ display: 'flex', gap: 1, mt: 1, flexWrap: 'wrap' }}>
             {images.map((src) => (
-              <Box key={src} sx={{ position: 'relative' }}>
+              <Box key={src}>
                 <img
                   src={src}
-                  alt="event"
                   style={{ width: 96, height: 64, objectFit: 'cover', borderRadius: 4 }}
                 />
                 <Button
@@ -435,18 +422,17 @@ export default function EventForm({
               </Box>
             ))}
 
-            {previews.map((p, i) => (
-              <Box key={p} sx={{ position: 'relative' }}>
+            {previews.map((p, idx) => (
+              <Box key={p}>
                 <img
                   src={p}
-                  alt={`preview-${i}`}
                   style={{ width: 96, height: 64, objectFit: 'cover', borderRadius: 4 }}
                 />
                 <Button
                   size="small"
                   onClick={() => {
                     setPreviews((ps) => ps.filter((x) => x !== p))
-                    setSelectedFiles((sf) => sf.filter((_, idx) => idx !== i))
+                    setSelectedFiles((sf) => sf.filter((_, i) => i !== idx))
                   }}
                 >
                   Remove
@@ -456,9 +442,9 @@ export default function EventForm({
           </Box>
         </Box>
 
-        {error && <Box sx={{ color: 'error.main', fontSize: 14 }}>{error}</Box>}
+        {error && <Box sx={{ color: 'error.main' }}>{error}</Box>}
 
-        <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1, mt: 1 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
           <Button variant="outlined" onClick={handleCancel} disabled={isSubmitting}>
             Cancel
           </Button>
