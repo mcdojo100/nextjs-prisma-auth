@@ -20,6 +20,8 @@ export async function POST(request: Request) {
       const arrayBuffer = await file.arrayBuffer()
       const buffer = Buffer.from(arrayBuffer)
 
+      console.log('Blob token:', process.env.BLOB_READ_WRITE_TOKEN ? 'exists' : 'missing')
+
       const result = await put(`uploads/${file.name}`, buffer, {
         access: 'public',
         addRandomSuffix: true,
