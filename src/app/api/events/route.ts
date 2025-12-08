@@ -17,6 +17,7 @@ export async function POST(req: Request) {
     importance,
     emotions,
     physicalSensations,
+    tags,
     category,
     verificationStatus,
     parentEventId,
@@ -41,7 +42,10 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
     if (parentEvent.parentEventId) {
-      return NextResponse.json({ error: 'Cannot create sub-event under another sub-event' }, { status: 400 })
+      return NextResponse.json(
+        { error: 'Cannot create sub-event under another sub-event' },
+        { status: 400 },
+      )
     }
   }
   const event = await db.event.create({
@@ -53,6 +57,10 @@ export async function POST(req: Request) {
       importance,
       emotions: Array.isArray(emotions) ? emotions : [],
       physicalSensations: Array.isArray(physicalSensations) ? physicalSensations : [],
+      // normalize tags to lowercase only, dedupe; accept array or default to []
+      tags: Array.isArray(tags)
+        ? Array.from(new Set(tags.map((t: any) => String(t).toLowerCase()).filter(Boolean)))
+        : [],
       category: category ?? null,
       verificationStatus: typeof verificationStatus === 'string' ? verificationStatus : undefined,
       parentEventId: parentEventId ?? null,

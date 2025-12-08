@@ -9,19 +9,20 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     const body = await request.json()
     const { title, description, importance, status, facts, assumptions, patterns, actions } = body
 
-    // Basic validation
-    if (
-      typeof importance !== 'number' ||
-      importance < 1 ||
-      importance > 10 ||
-      !status ||
-      !facts ||
-      !assumptions ||
-      !patterns ||
-      !actions
-    ) {
-      return NextResponse.json({ error: 'Invalid input' }, { status: 400 })
+    // Server-side validation: only `title` is required. Other fields are optional
+    if (!title || typeof title !== 'string' || !title.trim()) {
+      return NextResponse.json({ error: 'Title is required' }, { status: 400 })
     }
+
+    // Normalize/assign defaults for optional fields
+    const safeImportance =
+      typeof importance === 'number' && !Number.isNaN(importance) ? importance : 5
+    const safeImportanceClamped = Math.min(10, Math.max(1, safeImportance))
+    const safeStatus = typeof status === 'string' && status ? status : 'Open'
+    const safeFacts = typeof facts === 'string' ? facts : ''
+    const safeAssumptions = typeof assumptions === 'string' ? assumptions : ''
+    const safePatterns = typeof patterns === 'string' ? patterns : ''
+    const safeActions = typeof actions === 'string' ? actions : ''
 
     // Optional: verify event exists
     const event = await db.event.findUnique({
@@ -37,12 +38,12 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       data: {
         title: title ?? '',
         description: description ?? '',
-        importance,
-        status,
-        facts,
-        assumptions,
-        patterns,
-        actions,
+        importance: safeImportanceClamped,
+        status: safeStatus,
+        facts: safeFacts,
+        assumptions: safeAssumptions,
+        patterns: safePatterns,
+        actions: safeActions,
         eventId: id,
       },
     })

@@ -31,6 +31,7 @@ export async function PUT(req: NextRequest, context: RouteContext) {
     physicalSensations,
     category,
     verificationStatus, // ⭐ NEW
+    tags,
     parentEventId,
   } = payload
 
@@ -53,6 +54,17 @@ export async function PUT(req: NextRequest, context: RouteContext) {
   }
   if (existing.userId !== session.user.id) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  // Normalize tags if provided; if not provided, preserve existing tags.
+  let safeTags = existing.tags
+  if (tags !== undefined) {
+    if (Array.isArray(tags)) {
+      safeTags = Array.from(new Set(tags.map((t: any) => String(t).toLowerCase()).filter(Boolean)))
+    } else {
+      // If tags provided but not an array, ignore and keep existing tags.
+      safeTags = existing.tags
+    }
   }
 
   // If parentEventId provided, validate parent exists, belongs to user, and is not the event itself
@@ -92,26 +104,37 @@ export async function PUT(req: NextRequest, context: RouteContext) {
     }
   }
 
-  const updated = await db.event.update({
-    where: { id },
-    data: {
-      title,
-      description: description ?? '',
-      intensity,
-      importance,
-      emotions: Array.isArray(emotions) ? emotions : [],
-      physicalSensations: Array.isArray(physicalSensations) ? physicalSensations : [],
-      category: category ?? null,
-      // allow updating the parent relationship when provided; if omitted, keep existing
-      parentEventId: parentEventId === undefined ? existing.parentEventId : (parentEventId ?? null),
-      // ⭐ Only update verificationStatus if a valid string was provided;
-      // otherwise keep the existing value.
-      verificationStatus:
-        typeof verificationStatus === 'string' ? verificationStatus : existing.verificationStatus,
-    },
-  })
+  try {
+    const updated = await db.event.update({
+      where: { id },
+      data: {
+        title,
+        description: description ?? '',
+        intensity,
+        importance,
+        emotions: Array.isArray(emotions) ? emotions : [],
+        physicalSensations: Array.isArray(physicalSensations) ? physicalSensations : [],
+        tags: safeTags,
+        category: category ?? null,
+        // allow updating the parent relationship when provided; if omitted, keep existing
+        parentEventId:
+          parentEventId === undefined ? existing.parentEventId : (parentEventId ?? null),
+        // ⭐ Only update verificationStatus if a valid string was provided;
+        // otherwise keep the existing value.
+        verificationStatus:
+          typeof verificationStatus === 'string' ? verificationStatus : existing.verificationStatus,
+      },
+    })
 
-  return NextResponse.json(updated)
+    return NextResponse.json(updated)
+  } catch (err: any) {
+    console.error('Error updating event:', err)
+    // If the DB schema is not migrated, provide a helpful error message to the caller
+    return NextResponse.json(
+      { error: 'Failed to update event', details: String(err?.message ?? err) },
+      { status: 500 },
+    )
+  }
 }
 
 export async function DELETE(req: NextRequest, context: RouteContext) {

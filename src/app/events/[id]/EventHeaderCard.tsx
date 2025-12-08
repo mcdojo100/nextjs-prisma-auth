@@ -95,6 +95,21 @@ export default function EventHeaderCard({ event }: Props) {
               {event.description}
             </Typography>
           )}
+
+          {(event as any).tags && (event as any).tags.length > 0 && (
+            <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap', mt: 1 }}>
+              {(event as any).tags.slice(0, 4).map((t: string) => (
+                <Chip key={t} label={t} size="small" variant="outlined" sx={{ mr: 0.5, mb: 0.5 }} />
+              ))}
+              {(event as any).tags.length > 4 && (
+                <Chip
+                  size="small"
+                  variant="outlined"
+                  label={`+${(event as any).tags.length - 4}`}
+                />
+              )}
+            </Box>
+          )}
         </CardContent>
       </CardActionArea>
 

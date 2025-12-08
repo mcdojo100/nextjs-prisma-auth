@@ -233,7 +233,27 @@ export default function EventsList({ events }: EventsListProps) {
                   </Typography>
                 )}
 
-                {/* (Removed chips + divider for a more compact card layout) */}
+                {/* Tags */}
+                {(event as any).tags && (event as any).tags.length > 0 && (
+                  <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap', mt: 1 }}>
+                    {(event as any).tags.slice(0, 3).map((t: string) => (
+                      <Chip
+                        key={t}
+                        label={t}
+                        size="small"
+                        variant="outlined"
+                        sx={{ mr: 0.5, mb: 0.5 }}
+                      />
+                    ))}
+                    {(event as any).tags.length > 3 && (
+                      <Chip
+                        size="small"
+                        variant="outlined"
+                        label={`+${(event as any).tags.length - 3}`}
+                      />
+                    )}
+                  </Box>
+                )}
               </CardContent>
             </CardActionArea>
           </Card>

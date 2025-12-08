@@ -12,6 +12,7 @@ import {
   MenuItem,
   Checkbox,
   ListItemText,
+  Chip,
 } from '@mui/material'
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
@@ -36,6 +37,8 @@ export default function EventForm({
   const [importance, setImportance] = useState<number>(5)
   const [physicalSensations, setPhysicalSensations] = useState<string[]>([])
   const [emotions, setEmotions] = useState<string[]>([])
+  const [tags, setTags] = useState<string[]>((initialEvent as any)?.tags ?? [])
+  const [tagInput, setTagInput] = useState('')
   const [verificationStatus, setVerificationStatus] = useState<string>('Pending')
   const [category, setCategory] = useState<string>('')
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -75,6 +78,7 @@ export default function EventForm({
       }
       setVerificationStatus(mapStatus(initialEvent.verificationStatus))
       setCategory(initialEvent.category ?? '')
+      setTags((initialEvent as any).tags ?? [])
     } else {
       setTitle('')
       setDescription('')
@@ -84,8 +88,23 @@ export default function EventForm({
       setPhysicalSensations([])
       setVerificationStatus('Pending')
       setCategory('')
+      setTags([])
     }
   }, [initialEvent])
+
+  const normalizeAndDedupe = (arr: any[]) =>
+    Array.from(new Set(arr.map((t: any) => String(t).toLowerCase()).filter(Boolean)))
+
+  const addTagsFromInput = (raw: string) => {
+    if (!raw) return
+    const parts = raw.includes(',') ? raw.split(',') : [raw]
+    const toAdd = parts.map((p) => String(p).toLowerCase()).filter(Boolean)
+    if (!toAdd.length) return
+    setTags((prev) => normalizeAndDedupe([...prev, ...toAdd]))
+    setTagInput('')
+  }
+
+  const removeTag = (t: string) => setTags((prev) => prev.filter((x) => x !== t))
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -109,6 +128,7 @@ export default function EventForm({
             category,
             physicalSensations,
             verificationStatus,
+            tags,
           }),
         })
 
@@ -127,6 +147,7 @@ export default function EventForm({
             category,
             physicalSensations,
             verificationStatus,
+            tags,
             parentEventId,
           }),
         })
@@ -348,6 +369,37 @@ export default function EventForm({
             ))}
           </Select>
         </FormControl>
+
+        {/* Tags input */}
+        <Box>
+          <TextField
+            label="Add tag"
+            placeholder="type and press Enter or comma"
+            value={tagInput}
+            onChange={(e) => setTagInput(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ',') {
+                e.preventDefault()
+                addTagsFromInput(tagInput)
+              }
+            }}
+            fullWidth
+            size="small"
+          />
+
+          <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap', mt: 1 }}>
+            {tags?.length > 0 &&
+              tags.map((t) => (
+                <Chip
+                  key={t}
+                  label={t}
+                  size="small"
+                  onDelete={() => removeTag(t)}
+                  sx={{ mr: 0.5, mb: 0.5 }}
+                />
+              ))}
+          </Box>
+        </Box>
 
         {error && <Box sx={{ color: 'error.main', fontSize: 14 }}>{error}</Box>}
 

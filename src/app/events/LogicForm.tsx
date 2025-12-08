@@ -155,7 +155,6 @@ export default function LogicForm({
               value={status}
               onChange={(e) => setStatus(e.target.value)}
               fullWidth
-              required
             >
               {STATUS_OPTIONS.map((option) => (
                 <MenuItem key={option} value={option}>
@@ -187,7 +186,6 @@ export default function LogicForm({
           value={facts}
           onChange={(e) => setFacts(e.target.value)}
           fullWidth
-          required
           multiline
           minRows={3}
         />
@@ -197,7 +195,6 @@ export default function LogicForm({
           value={assumptions}
           onChange={(e) => setAssumptions(e.target.value)}
           fullWidth
-          required
           multiline
           minRows={3}
         />
@@ -207,7 +204,6 @@ export default function LogicForm({
           value={patterns}
           onChange={(e) => setPatterns(e.target.value)}
           fullWidth
-          required
           multiline
           minRows={3}
         />
@@ -217,7 +213,6 @@ export default function LogicForm({
           value={actions}
           onChange={(e) => setActions(e.target.value)}
           fullWidth
-          required
           multiline
           minRows={3}
         />
