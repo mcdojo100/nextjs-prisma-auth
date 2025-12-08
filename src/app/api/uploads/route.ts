@@ -6,6 +6,7 @@ export const config = {
 }
 
 export async function POST(request: Request) {
+  console.log('hello')
   try {
     const formData = await request.formData()
     const files = formData.getAll('files') as File[]
@@ -16,6 +17,7 @@ export async function POST(request: Request) {
 
     const urls: string[] = []
 
+    console.log('hello')
     for (const file of files) {
       const arrayBuffer = await file.arrayBuffer()
       const buffer = Buffer.from(arrayBuffer)
