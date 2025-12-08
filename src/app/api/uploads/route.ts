@@ -6,7 +6,7 @@ export const config = {
 }
 
 export async function POST(request: Request) {
-  console.log('hello')
+  console.log('hello from uploads route')
   try {
     const formData = await request.formData()
     const files = formData.getAll('files') as File[]
