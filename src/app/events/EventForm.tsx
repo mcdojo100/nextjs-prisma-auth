@@ -138,14 +138,19 @@ export default function EventForm({
     setError(null)
 
     try {
+      // If there are selected files, upload them first
       let uploadedUrls: string[] = []
-
-      // Upload selected images first
       if (selectedFiles.length > 0) {
-        uploadedUrls = await uploadToVercelBlob(selectedFiles)
+        const form = new FormData()
+        selectedFiles.forEach((f) => form.append('files', f)) // note: 'files' matches API
+
+        const upl = await fetch('/api/uploads', { method: 'POST', body: form })
+        if (!upl.ok) throw new Error('Failed to upload images')
+
+        const du = await upl.json()
+        uploadedUrls = Array.isArray(du.urls) ? du.urls : []
       }
 
-      // Combine old + new images
       const imagesToSend = Array.from(new Set([...(images ?? []), ...uploadedUrls]))
 
       let res: Response

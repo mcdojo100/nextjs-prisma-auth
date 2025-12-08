@@ -1,41 +1,27 @@
 import { NextResponse } from 'next/server'
-import fs from 'fs'
-import path from 'path'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
+import { put } from '@vercel/blob'
 
-export async function POST(req: Request) {
-  const session = await getServerSession(authOptions)
-  if (!session?.user?.id) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+export async function POST(request: Request) {
+  const formData = await request.formData()
+  const files = formData.getAll('files') as File[] // multiple files
+
+  if (!files || !files.length) {
+    return NextResponse.json({ error: 'No files uploaded' }, { status: 400 })
   }
 
   try {
-    const formData = await req.formData()
-    const files = formData.getAll('files') as File[]
-
-    const uploadDir = path.join(process.cwd(), 'public', 'uploads')
-    if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true })
-
+    // Upload each file to Vercel Blob
     const urls: string[] = []
-
     for (const file of files) {
-      if (!(file instanceof File)) continue
-      const name = typeof file.name === 'string' ? file.name : 'file'
-      const safe = name.replace(/[^a-z0-9.\-_]/gi, '_')
-      const unique = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}-${safe}`
-      const buffer = Buffer.from(await file.arrayBuffer())
-      const dest = path.join(uploadDir, unique)
-      await fs.promises.writeFile(dest, buffer)
-      urls.push(`/uploads/${unique}`)
+      const { url } = await put(`uploads/${file.name}`, file, {
+        access: 'public',
+      })
+      urls.push(url)
     }
 
     return NextResponse.json({ urls })
-  } catch (err: any) {
+  } catch (err) {
     console.error('Upload error:', err)
-    return NextResponse.json(
-      { error: 'Upload failed', details: String(err?.message ?? err) },
-      { status: 500 },
-    )
+    return NextResponse.json({ error: 'Upload failed' }, { status: 500 })
   }
 }
