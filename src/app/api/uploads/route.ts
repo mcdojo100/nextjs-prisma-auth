@@ -23,15 +23,26 @@ export async function POST(request: Request) {
       const result = await put(`uploads/${file.name}`, buffer, {
         access: 'public',
         addRandomSuffix: true,
-        token: process.env.BLOB_READ_WRITE_TOKEN, // <-- explicitly pass the token
+        token: process.env.BLOB_READ_WRITE_TOKEN,
       })
 
       urls.push(result.url)
     }
 
     return NextResponse.json({ urls })
-  } catch (err) {
+  } catch (err: any) {
     console.error('Upload route failed', err)
-    return NextResponse.json({ error: 'Upload failed', fullError: err }, { status: 500 })
+
+    // Serialize the error for JSON
+    const serializedError = {
+      message: err.message ?? String(err),
+      stack: err.stack,
+      ...err, // optional: include other properties
+    }
+
+    return NextResponse.json(
+      { error: 'Upload failed', fullError: serializedError },
+      { status: 500 },
+    )
   }
 }
