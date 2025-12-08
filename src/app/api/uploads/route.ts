@@ -1,12 +1,7 @@
 import { NextResponse } from 'next/server'
 import { put } from '@vercel/blob'
 
-export const config = {
-  runtime: 'nodejs',
-}
-
 export async function POST(request: Request) {
-  console.log('hello from uploads route')
   try {
     const formData = await request.formData()
     const files = formData.getAll('files') as File[]
@@ -17,31 +12,28 @@ export async function POST(request: Request) {
 
     const urls: string[] = []
 
-    console.log('hello')
     for (const file of files) {
       const arrayBuffer = await file.arrayBuffer()
       const buffer = Buffer.from(arrayBuffer)
 
-      console.log('Blob token:', process.env.BLOB_READ_WRITE_TOKEN ? 'exists' : 'missing')
-
-      const result = await put(`uploads/${file.name}`, buffer, {
+      // Upload the file to Vercel Blob
+      const blob = await put(`uploads/${file.name}`, buffer, {
         access: 'public',
-        addRandomSuffix: true,
+        addRandomSuffix: true, // Optional: if you want a unique file name
         token: process.env.BLOB_READ_WRITE_TOKEN,
       })
 
-      urls.push(result.url)
+      urls.push(blob.url) // Save the URL for each uploaded file
     }
 
     return NextResponse.json({ urls })
   } catch (err: any) {
-    console.error('Upload route failed', err)
+    console.error('Upload failed:', err)
 
-    // Serialize the error for JSON
+    // Serialize error for better debugging
     const serializedError = {
-      message: err.message ?? String(err),
-      stack: err.stack,
-      ...err, // optional: include other properties
+      message: err?.message ?? String(err),
+      stack: err?.stack,
     }
 
     return NextResponse.json(
