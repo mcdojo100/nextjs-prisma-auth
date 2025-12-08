@@ -20,43 +20,18 @@ export async function POST(request: Request) {
       const arrayBuffer = await file.arrayBuffer()
       const buffer = Buffer.from(arrayBuffer)
 
-      try {
-        const result = await put(`uploads/${file.name}`, buffer, {
-          access: 'public',
-          addRandomSuffix: true,
-        })
-        console.log('Vercel Blob result:', result) // full response
-        urls.push(result.url)
-      } catch (uploadErr: any) {
-        console.error('Individual file upload failed:', file.name, uploadErr)
+      const result = await put(`uploads/${file.name}`, buffer, {
+        access: 'public',
+        addRandomSuffix: true,
+        token: process.env.BLOB_READ_WRITE_TOKEN, // <-- explicitly pass the token
+      })
 
-        // If the error has a response property, print it
-        if (uploadErr.response) {
-          console.error('Vercel Blob response:', uploadErr.response)
-        }
-
-        return NextResponse.json(
-          {
-            error: `Failed to upload file: ${file.name}`,
-            details: uploadErr?.message ?? String(uploadErr),
-            fullError: uploadErr,
-          },
-          { status: 500 },
-        )
-      }
+      urls.push(result.url)
     }
 
     return NextResponse.json({ urls })
-  } catch (err: any) {
+  } catch (err) {
     console.error('Upload route failed', err)
-
-    let message = 'Upload failed'
-    if (err instanceof Error) message = err.message
-    else if (typeof err === 'object') message = JSON.stringify(err)
-
-    return NextResponse.json(
-      { error: message, stack: err?.stack ?? null, fullError: err },
-      { status: 500 },
-    )
+    return NextResponse.json({ error: 'Upload failed', fullError: err }, { status: 500 })
   }
 }
