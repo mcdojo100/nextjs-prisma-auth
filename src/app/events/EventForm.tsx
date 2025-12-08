@@ -39,6 +39,9 @@ export default function EventForm({
   const [emotions, setEmotions] = useState<string[]>([])
   const [tags, setTags] = useState<string[]>((initialEvent as any)?.tags ?? [])
   const [tagInput, setTagInput] = useState('')
+  const [images, setImages] = useState<string[]>((initialEvent as any)?.images ?? [])
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([])
+  const [previews, setPreviews] = useState<string[]>([])
   const [verificationStatus, setVerificationStatus] = useState<string>('Pending')
   const [category, setCategory] = useState<string>('')
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -79,6 +82,7 @@ export default function EventForm({
       setVerificationStatus(mapStatus(initialEvent.verificationStatus))
       setCategory(initialEvent.category ?? '')
       setTags((initialEvent as any).tags ?? [])
+      setImages((initialEvent as any).images ?? [])
     } else {
       setTitle('')
       setDescription('')
@@ -89,6 +93,7 @@ export default function EventForm({
       setVerificationStatus('Pending')
       setCategory('')
       setTags([])
+      setImages([])
     }
   }, [initialEvent])
 
@@ -114,6 +119,19 @@ export default function EventForm({
     try {
       let res: Response
 
+      // If there are selected files, upload them first and merge returned URLs
+      let uploadedUrls: string[] = []
+      if (selectedFiles && selectedFiles.length > 0) {
+        const form = new FormData()
+        selectedFiles.forEach((f) => form.append('files', f))
+        const upl = await fetch('/api/uploads', { method: 'POST', body: form })
+        if (!upl.ok) throw new Error('Failed to upload images')
+        const du = await upl.json()
+        uploadedUrls = Array.isArray(du.urls) ? du.urls : []
+      }
+
+      const imagesToSend = Array.from(new Set([...(images ?? []), ...uploadedUrls]))
+
       if (initialEvent?.id) {
         // update existing
         res = await fetch(`/api/events/${initialEvent.id}`, {
@@ -129,6 +147,7 @@ export default function EventForm({
             physicalSensations,
             verificationStatus,
             tags,
+            images: imagesToSend,
           }),
         })
 
@@ -148,6 +167,7 @@ export default function EventForm({
             physicalSensations,
             verificationStatus,
             tags,
+            images: imagesToSend,
             parentEventId,
           }),
         })
@@ -216,54 +236,32 @@ export default function EventForm({
           minRows={3}
         />
 
-        <Box
-          sx={{
-            display: 'grid',
-            gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' },
-            gap: 2,
-          }}
-        >
-          <Box>
-            <Box
-              sx={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                mb: 0.5,
-                fontSize: 14,
-              }}
-            >
-              <span>Intensity</span>
-              <span>{intensity}</span>
-            </Box>
-            <Slider
-              value={intensity}
-              onChange={(_, value) => setIntensity(value as number)}
-              step={1}
-              min={1}
-              max={10}
-            />
+        <Box>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5, fontSize: 14 }}>
+            <span>Intensity</span>
+            <span>{intensity}</span>
           </Box>
+          <Slider
+            value={intensity}
+            onChange={(_, value) => setIntensity(value as number)}
+            step={1}
+            min={1}
+            max={10}
+          />
+        </Box>
 
-          <Box>
-            <Box
-              sx={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                mb: 0.5,
-                fontSize: 14,
-              }}
-            >
-              <span>Importance</span>
-              <span>{importance}</span>
-            </Box>
-            <Slider
-              value={importance}
-              onChange={(_, value) => setImportance(value as number)}
-              step={1}
-              min={1}
-              max={10}
-            />
+        <Box>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5, fontSize: 14 }}>
+            <span>Importance</span>
+            <span>{importance}</span>
           </Box>
+          <Slider
+            value={importance}
+            onChange={(_, value) => setImportance(value as number)}
+            step={1}
+            min={1}
+            max={10}
+          />
         </Box>
 
         <FormControl fullWidth>
@@ -398,6 +396,63 @@ export default function EventForm({
                   sx={{ mr: 0.5, mb: 0.5 }}
                 />
               ))}
+          </Box>
+        </Box>
+
+        {/* Image picker + previews */}
+        <Box>
+          <Button variant="contained" component="label">
+            Upload images
+            <input
+              hidden
+              id="event-images"
+              accept="image/*"
+              multiple
+              type="file"
+              onChange={(e) => {
+                const files = Array.from(e.target.files ?? [])
+                setSelectedFiles(files)
+                const prevs = files.map((f) => URL.createObjectURL(f))
+                setPreviews(prevs)
+              }}
+            />
+          </Button>
+
+          <Box sx={{ display: 'flex', gap: 1, mt: 1, flexWrap: 'wrap' }}>
+            {images.map((src) => (
+              <Box key={src} sx={{ position: 'relative' }}>
+                <img
+                  src={src}
+                  alt="event"
+                  style={{ width: 96, height: 64, objectFit: 'cover', borderRadius: 4 }}
+                />
+                <Button
+                  size="small"
+                  onClick={() => setImages((prev) => prev.filter((p) => p !== src))}
+                >
+                  Remove
+                </Button>
+              </Box>
+            ))}
+
+            {previews.map((p, i) => (
+              <Box key={p} sx={{ position: 'relative' }}>
+                <img
+                  src={p}
+                  alt={`preview-${i}`}
+                  style={{ width: 96, height: 64, objectFit: 'cover', borderRadius: 4 }}
+                />
+                <Button
+                  size="small"
+                  onClick={() => {
+                    setPreviews((ps) => ps.filter((x) => x !== p))
+                    setSelectedFiles((sf) => sf.filter((_, idx) => idx !== i))
+                  }}
+                >
+                  Remove
+                </Button>
+              </Box>
+            ))}
           </Box>
         </Box>
 

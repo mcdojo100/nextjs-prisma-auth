@@ -18,6 +18,7 @@ export async function POST(req: Request) {
     emotions,
     physicalSensations,
     tags,
+    images,
     category,
     verificationStatus,
     parentEventId,
@@ -60,6 +61,10 @@ export async function POST(req: Request) {
       // normalize tags to lowercase only, dedupe; accept array or default to []
       tags: Array.isArray(tags)
         ? Array.from(new Set(tags.map((t: any) => String(t).toLowerCase()).filter(Boolean)))
+        : [],
+      // images: accept array of strings (URLs) or default to []
+      images: Array.isArray(images)
+        ? Array.from(new Set(images.map((i: any) => String(i)).filter(Boolean)))
         : [],
       category: category ?? null,
       verificationStatus: typeof verificationStatus === 'string' ? verificationStatus : undefined,

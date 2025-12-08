@@ -78,6 +78,7 @@ model Event {
   emotions String[] @default([])
   physicalSensations String[] @default([])
   tags String[] @default([])
+  images String[] @default([])
   category           String?
   verificationStatus String @default("Pending")
   createdAt   DateTime @default(now())

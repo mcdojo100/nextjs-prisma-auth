@@ -32,6 +32,7 @@ export async function PUT(req: NextRequest, context: RouteContext) {
     category,
     verificationStatus, // ⭐ NEW
     tags,
+    images,
     parentEventId,
   } = payload
 
@@ -64,6 +65,16 @@ export async function PUT(req: NextRequest, context: RouteContext) {
     } else {
       // If tags provided but not an array, ignore and keep existing tags.
       safeTags = existing.tags
+    }
+  }
+
+  // Normalize images if provided; preserve existing if omitted.
+  let safeImages = existing.images ?? []
+  if (images !== undefined) {
+    if (Array.isArray(images)) {
+      safeImages = Array.from(new Set(images.map((i: any) => String(i)).filter(Boolean)))
+    } else {
+      safeImages = existing.images ?? []
     }
   }
 
@@ -115,6 +126,7 @@ export async function PUT(req: NextRequest, context: RouteContext) {
         emotions: Array.isArray(emotions) ? emotions : [],
         physicalSensations: Array.isArray(physicalSensations) ? physicalSensations : [],
         tags: safeTags,
+        images: safeImages,
         category: category ?? null,
         // allow updating the parent relationship when provided; if omitted, keep existing
         parentEventId:
