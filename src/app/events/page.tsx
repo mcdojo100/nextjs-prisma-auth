@@ -26,6 +26,7 @@ export default async function EventsPage() {
       emotions: true,
       physicalSensations: true,
       tags: true,
+      images: true,
       category: true,
       verificationStatus: true,
       createdAt: true,
