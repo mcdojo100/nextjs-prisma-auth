@@ -3,25 +3,24 @@ import { put } from '@vercel/blob'
 
 export async function POST(request: Request) {
   const formData = await request.formData()
-  const files = formData.getAll('files') as File[] // multiple files
+  const files = formData.getAll('files') as File[]
 
-  if (!files || !files.length) {
+  if (!files.length) {
     return NextResponse.json({ error: 'No files uploaded' }, { status: 400 })
   }
 
   try {
-    // Upload each file to Vercel Blob
     const urls: string[] = []
     for (const file of files) {
       const { url } = await put(`uploads/${file.name}`, file, {
         access: 'public',
+        addRandomSuffix: true,
       })
       urls.push(url)
     }
-
     return NextResponse.json({ urls })
   } catch (err) {
-    console.error('Upload error:', err)
+    console.error('Upload failed', err)
     return NextResponse.json({ error: 'Upload failed' }, { status: 500 })
   }
 }

@@ -404,9 +404,10 @@ export default function EventForm({
               accept="image/*"
               onChange={(e) => {
                 const files = Array.from(e.target.files ?? [])
-                setSelectedFiles(files)
-                const prevs = files.map((f) => URL.createObjectURL(f))
-                setPreviews(prevs)
+                setSelectedFiles((prev) => [...prev, ...files]) // append new files
+
+                const newPreviews = files.map((f) => URL.createObjectURL(f))
+                setPreviews((prev) => [...prev, ...newPreviews]) // append previews
               }}
             />
           </Button>
