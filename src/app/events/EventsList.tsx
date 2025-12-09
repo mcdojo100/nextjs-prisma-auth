@@ -243,35 +243,7 @@ export default function EventsList({ events }: EventsListProps) {
                   </Typography>
                 )}
 
-                {/* Tags */}
-                {(event as any).tags && (event as any).tags.length > 0 && (
-                  <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap', mt: 1 }}>
-                    {(event as any).tags.slice(0, 3).map((t: string) => (
-                      <Chip
-                        key={t}
-                        label={t}
-                        size="small"
-                        variant={selectedTags.includes(t) ? 'filled' : 'outlined'}
-                        color={selectedTags.includes(t) ? 'primary' : 'default'}
-                        sx={{ mr: 0.5, mb: 0.5, cursor: 'pointer' }}
-                        onClick={(e) => {
-                          e.preventDefault()
-                          e.stopPropagation()
-                          setSelectedTags((prev) =>
-                            prev.includes(t) ? prev.filter((x) => x !== t) : [...prev, t],
-                          )
-                        }}
-                      />
-                    ))}
-                    {(event as any).tags.length > 3 && (
-                      <Chip
-                        size="small"
-                        variant="outlined"
-                        label={`+${(event as any).tags.length - 3}`}
-                      />
-                    )}
-                  </Box>
-                )}
+                {/* Tags removed from event cards per UI change */}
               </CardContent>
             </CardActionArea>
           </Card>
