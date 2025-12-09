@@ -75,6 +75,7 @@ model Event {
   description String
   intensity   Int
   importance  Int
+  perception String @default("Neutral")
   emotions String[] @default([])
   physicalSensations String[] @default([])
   tags String[] @default([])
