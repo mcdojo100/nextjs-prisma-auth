@@ -26,6 +26,7 @@ import MoreVertIcon from '@mui/icons-material/MoreVert'
 import SortIcon from '@mui/icons-material/Sort'
 import EventForm from '../EventForm'
 import type { Event as PrismaEvent } from '@prisma/client'
+import TagFilter from '../TagFilter'
 
 type Props = {
   eventId: string
@@ -35,6 +36,7 @@ type Props = {
 export default function SubEventWorkspace({ eventId, subEvents }: Props) {
   const [openCreate, setOpenCreate] = useState(false)
   const [subSortOrder, setSubSortOrder] = useState<'desc' | 'asc'>('desc')
+  const [selectedTags, setSelectedTags] = useState<string[]>([])
   const router = useRouter()
   const [viewDialogOpen, setViewDialogOpen] = useState(false)
   const [viewEvent, setViewEvent] = useState<PrismaEvent | null>(null)
@@ -104,6 +106,9 @@ export default function SubEventWorkspace({ eventId, subEvents }: Props) {
       setIsDeleting(false)
     }
   }
+  const filteredSubEvents = selectedTags.length
+    ? subEvents.filter((e) => (e as any).tags?.some((t: string) => selectedTags.includes(t)))
+    : subEvents
 
   return (
     <Box>
@@ -128,14 +133,18 @@ export default function SubEventWorkspace({ eventId, subEvents }: Props) {
             alignItems: { xs: 'stretch', sm: 'center' },
           }}
         >
-          <Button
-            size="small"
-            startIcon={<SortIcon />}
-            onClick={() => setSubSortOrder((s) => (s === 'desc' ? 'asc' : 'desc'))}
-            sx={{ width: { xs: '100%', sm: 'auto' } }}
-          >
-            {subSortOrder === 'desc' ? 'Newest' : 'Oldest'}
-          </Button>
+          <Box sx={{ display: 'flex', gap: 0.5, alignItems: 'center' }}>
+            <TagFilter events={subEvents} selectedTags={selectedTags} onChange={setSelectedTags} />
+            <Button
+              size="small"
+              startIcon={<SortIcon />}
+              onClick={() => setSubSortOrder((s) => (s === 'desc' ? 'asc' : 'desc'))}
+              sx={{ width: { xs: '100%', sm: 'auto' } }}
+            >
+              {subSortOrder === 'desc' ? 'Newest' : 'Oldest'}
+            </Button>
+          </Box>
+
           <Button
             variant="contained"
             size="small"
@@ -152,12 +161,11 @@ export default function SubEventWorkspace({ eventId, subEvents }: Props) {
           <Alert severity="error">{deleteError}</Alert>
         </Box>
       )}
-
-      {subEvents.length === 0 ? (
+      {filteredSubEvents.length === 0 ? (
         <Typography color="text.secondary">No sub events yet.</Typography>
       ) : (
         <Stack spacing={1.5}>
-          {[...subEvents]
+          {[...filteredSubEvents]
             .sort((a, b) => {
               const ta = new Date(a.createdAt).getTime()
               const tb = new Date(b.createdAt).getTime()

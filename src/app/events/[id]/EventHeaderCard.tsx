@@ -27,7 +27,17 @@ export default function EventHeaderCard({ event }: Props) {
     <Card sx={{ width: '100%', position: 'relative', borderColor: 'divider', mb: 3 }}>
       <CardActionArea
         component="div"
-        onClick={() => setOpenEdit(true)}
+        onClick={(e: React.MouseEvent<HTMLElement>) => {
+          const target = e.target as HTMLElement
+          // don't open edit if click originated from the options (More) button or menu items
+          if (
+            target.closest('[aria-label="event-options"]') ||
+            target.closest('.MuiMenuItem-root')
+          ) {
+            return
+          }
+          setOpenEdit(true)
+        }}
         role="button"
         tabIndex={0}
         onKeyDown={(e) => {
@@ -49,7 +59,10 @@ export default function EventHeaderCard({ event }: Props) {
               {event.title}
             </Typography>
 
-            <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+            <Box
+              sx={{ display: 'flex', gap: 1, alignItems: 'center' }}
+              onClick={(e) => e.stopPropagation()}
+            >
               {event.verificationStatus && (
                 <Chip
                   label={event.verificationStatus}
