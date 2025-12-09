@@ -47,7 +47,7 @@ export default function EventTabs({ eventId, logics, subEvents }: EventTabsProps
     <Box>
       <Tabs value={tab} onChange={handleChange} aria-label="Event tabs" sx={{ mb: 2 }}>
         <Tab label="Sub Events" {...a11yProps(0)} />
-        <Tab label="Analyses" {...a11yProps(1)} />
+        <Tab label="Notes" {...a11yProps(1)} />
       </Tabs>
 
       <TabPanel value={tab} index={0}>

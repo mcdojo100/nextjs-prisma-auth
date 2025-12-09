@@ -12,5 +12,5 @@ export default function Logic() {
   if (!session) {
     redirect('/')
   }
-  return <div>Analysis Page - To Do</div>
+  return <div>Notes Page - To Do</div>
 }

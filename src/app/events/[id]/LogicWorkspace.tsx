@@ -171,7 +171,7 @@ export default function LogicWorkspace({ eventId, logics }: LogicWorkspaceProps)
           mb: 2,
         }}
       >
-        <Typography variant="h6">Analyses</Typography>
+        <Typography variant="h6">Notes</Typography>
 
         <Box
           sx={{
@@ -200,7 +200,7 @@ export default function LogicWorkspace({ eventId, logics }: LogicWorkspaceProps)
             }}
             onClick={handleOpenCreate}
           >
-            + New Analysis
+            + New Note
           </Button>
         </Box>
       </Box>
@@ -208,7 +208,7 @@ export default function LogicWorkspace({ eventId, logics }: LogicWorkspaceProps)
       {/* Logic cards list – full width of container */}
       {logics.length === 0 ? (
         <Typography variant="body2" color="text.secondary">
-          No analyses yet. Click &quot;New Analysis&quot; to add your first one.
+          No notes yet. Click &quot;New Note&quot; to add your first one.
         </Typography>
       ) : (
         <Stack spacing={1.5}>
@@ -233,7 +233,7 @@ export default function LogicWorkspace({ eventId, logics }: LogicWorkspaceProps)
                     }}
                   >
                     <Typography variant="subtitle1" noWrap>
-                      {logic.title || 'Untitled analysis'}
+                      {logic.title || 'Untitled note'}
                     </Typography>
                     <Box
                       sx={{
@@ -302,7 +302,7 @@ export default function LogicWorkspace({ eventId, logics }: LogicWorkspaceProps)
 
       {/* Dialog with LogicForm */}
       <Dialog open={dialogOpen} onClose={handleCloseDialog} fullWidth maxWidth="sm">
-        <DialogTitle>{formMode === 'create' ? 'New Analysis' : 'Edit Analysis'}</DialogTitle>
+        <DialogTitle>{formMode === 'create' ? 'New Note' : 'Edit Note'}</DialogTitle>
         <DialogContent dividers>
           <LogicForm
             eventId={eventId}
@@ -368,7 +368,7 @@ export default function LogicWorkspace({ eventId, logics }: LogicWorkspaceProps)
         <DialogContent>
           <DialogContentText id="delete-logic-dialog-description">
             {`Are you sure you want to delete "${
-              logics.find((l) => l.id === deleteTargetId)?.title || 'this analysis'
+              logics.find((l) => l.id === deleteTargetId)?.title || 'this note'
             }"? This action cannot be undone.`}
           </DialogContentText>
         </DialogContent>

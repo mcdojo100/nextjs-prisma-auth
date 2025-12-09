@@ -111,7 +111,7 @@ export default function LogicForm({
 
       if (!res.ok) {
         const data = await res.json().catch(() => null)
-        throw new Error(data?.error || 'Failed to save analysis')
+        throw new Error(data?.error || 'Failed to save note')
       }
 
       router.refresh()
@@ -224,7 +224,7 @@ export default function LogicForm({
             </Button>
           )}
           <Button type="submit" variant="contained" disabled={isSubmitting}>
-            {mode === 'create' ? 'Add Analysis' : 'Save Changes'}
+            {mode === 'create' ? 'Add Note' : 'Save Changes'}
           </Button>
         </Box>
       </Stack>
