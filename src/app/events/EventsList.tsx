@@ -1,7 +1,7 @@
 // src/app/events/EventsList.tsx
 'use client'
 
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import {
   Box,
@@ -19,11 +19,15 @@ import {
   Button,
   Menu,
   MenuItem,
+  ListItemIcon,
+  ListItemText,
 } from '@mui/material'
 import type { Event as PrismaEvent } from '@prisma/client'
 import Link from 'next/link'
 import { IconButton } from '@mui/material'
 import MoreVertIcon from '@mui/icons-material/MoreVert'
+import FilterListIcon from '@mui/icons-material/FilterList'
+import ClearIcon from '@mui/icons-material/Clear'
 import EventForm from './EventForm'
 import SortIcon from '@mui/icons-material/Sort'
 
@@ -42,6 +46,17 @@ export default function EventsList({ events }: EventsListProps) {
   const [deleteTarget, setDeleteTarget] = useState<DeleteTarget | null>(null)
   const [isDeleting, setIsDeleting] = useState(false)
   const [sortOrder, setSortOrder] = useState<'desc' | 'asc'>('desc')
+  const [filterAnchorEl, setFilterAnchorEl] = useState<HTMLElement | null>(null)
+  const [selectedTags, setSelectedTags] = useState<string[]>([])
+
+  const uniqueTags = useMemo(() => {
+    const s = new Set<string>()
+    for (const e of events) {
+      const tags = (e as any).tags
+      if (Array.isArray(tags)) tags.forEach((t) => s.add(t))
+    }
+    return Array.from(s).sort()
+  }, [events])
 
   // menu state for options (edit/delete)
   const [menuAnchorEl, setMenuAnchorEl] = useState<HTMLElement | null>(null)
@@ -61,6 +76,14 @@ export default function EventsList({ events }: EventsListProps) {
     setMenuAnchorEl(e.currentTarget)
     setMenuEvent(event)
   }
+
+  const openFilterMenu = (e: any) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setFilterAnchorEl(e.currentTarget)
+  }
+
+  const closeFilterMenu = () => setFilterAnchorEl(null)
 
   const closeMenu = () => {
     setMenuAnchorEl(null)
@@ -119,32 +142,26 @@ export default function EventsList({ events }: EventsListProps) {
     return sortOrder === 'desc' ? tb - ta : ta - tb
   })
 
+  const filteredEvents = selectedTags.length
+    ? sortedEvents.filter((e) => (e as any).tags?.some((t: string) => selectedTags.includes(t)))
+    : sortedEvents
+
   // Only show parent events (those without a parentEventId)
-  const parentEvents = sortedEvents.filter(
+  const parentEvents = filteredEvents.filter(
     (e) => e.parentEventId === null || e.parentEventId === undefined,
   )
 
-  if (!parentEvents.length) {
-    return (
-      <Box sx={{ mt: 2 }}>
-        {events.length > 0 ? (
-          <Typography variant="body1">
-            No parent events to display. Sub-events are shown under their parent events.
-          </Typography>
-        ) : (
-          <Typography variant="body1">
-            You don&apos;t have any events yet. Click &quot;Create Event&quot; to add your first
-            one.
-          </Typography>
-        )}
-      </Box>
-    )
-  }
+  // don't early-return here; always render the controls row below and
+  // show a message when there are no parent events after filtering.
 
   return (
     <>
-      {/* Sort control */}
-      <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 1 }}>
+      {/* Sort / Filter controls (Filter on the left, then Sort) */}
+      <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 1, gap: 0 }}>
+        <Button size="small" startIcon={<FilterListIcon />} onClick={openFilterMenu}>
+          Filter
+        </Button>
+
         <Button
           size="small"
           startIcon={<SortIcon />}
@@ -153,6 +170,55 @@ export default function EventsList({ events }: EventsListProps) {
           Sort: {sortOrder === 'desc' ? 'Newest' : 'Oldest'}
         </Button>
       </Box>
+      {/* Filter menu for selecting tags */}
+      <Menu
+        anchorEl={filterAnchorEl}
+        open={Boolean(filterAnchorEl)}
+        onClose={closeFilterMenu}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+        transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+        PaperProps={{ sx: { p: 1, minWidth: 240 } }}
+      >
+        <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+          {uniqueTags.length === 0 ? (
+            <Typography variant="body2" color="text.secondary">
+              No tags
+            </Typography>
+          ) : (
+            uniqueTags.map((t) => {
+              const sel = selectedTags.includes(t)
+              return (
+                <Chip
+                  key={t}
+                  label={t}
+                  size="medium"
+                  color={sel ? 'primary' : 'default'}
+                  variant={sel ? 'filled' : 'outlined'}
+                  onClick={() =>
+                    setSelectedTags((prev) =>
+                      prev.includes(t) ? prev.filter((x) => x !== t) : [...prev, t],
+                    )
+                  }
+                  sx={{ cursor: 'pointer' }}
+                />
+              )
+            })
+          )}
+        </Box>
+        <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 1, px: 1 }}>
+          <Button
+            variant="outlined"
+            size="small"
+            startIcon={<ClearIcon />}
+            onClick={() => {
+              setSelectedTags([])
+              closeFilterMenu()
+            }}
+          >
+            Clear filters
+          </Button>
+        </Box>
+      </Menu>
       <Stack spacing={1.5}>
         {parentEvents.map((event) => (
           <Card
@@ -255,8 +321,16 @@ export default function EventsList({ events }: EventsListProps) {
                         key={t}
                         label={t}
                         size="small"
-                        variant="outlined"
-                        sx={{ mr: 0.5, mb: 0.5 }}
+                        variant={selectedTags.includes(t) ? 'filled' : 'outlined'}
+                        color={selectedTags.includes(t) ? 'primary' : 'default'}
+                        sx={{ mr: 0.5, mb: 0.5, cursor: 'pointer' }}
+                        onClick={(e) => {
+                          e.preventDefault()
+                          e.stopPropagation()
+                          setSelectedTags((prev) =>
+                            prev.includes(t) ? prev.filter((x) => x !== t) : [...prev, t],
+                          )
+                        }}
                       />
                     ))}
                     {(event as any).tags.length > 3 && (
