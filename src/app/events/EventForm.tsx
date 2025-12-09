@@ -40,6 +40,7 @@ export default function EventForm({
   const [description, setDescription] = useState('')
   const [intensity, setIntensity] = useState<number>(5)
   const [importance, setImportance] = useState<number>(5)
+  const [perception, setPerception] = useState<string>('Neutral')
   const [physicalSensations, setPhysicalSensations] = useState<string[]>([])
   const [emotions, setEmotions] = useState<string[]>([])
   const [tags, setTags] = useState<string[]>((initialEvent as any)?.tags ?? [])
@@ -93,6 +94,7 @@ export default function EventForm({
       setCategory(initialEvent.category ?? '')
       setTags((initialEvent as any).tags ?? [])
       setImages((initialEvent as any).images ?? [])
+      setPerception((initialEvent as any).perception ?? 'Neutral')
     } else {
       setTitle('')
       setDescription('')
@@ -104,6 +106,7 @@ export default function EventForm({
       setCategory('')
       setTags([])
       setImages([])
+      setPerception('Neutral')
     }
   }, [initialEvent])
 
@@ -172,6 +175,7 @@ export default function EventForm({
             description,
             intensity,
             importance,
+            perception,
             emotions,
             category,
             physicalSensations,
@@ -190,6 +194,7 @@ export default function EventForm({
             description,
             intensity,
             importance,
+            perception,
             emotions,
             category,
             physicalSensations,
@@ -317,6 +322,22 @@ export default function EventForm({
             ].map((s) => (
               <MenuItem key={s} value={s}>
                 {s}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+
+        <FormControl fullWidth>
+          <InputLabel id="perception-label">Perception</InputLabel>
+          <Select
+            labelId="perception-label"
+            value={perception}
+            onChange={(e) => setPerception(e.target.value as string)}
+            label="Perception"
+          >
+            {['Positive', 'Neutral', 'Negative'].map((p) => (
+              <MenuItem key={p} value={p}>
+                {p}
               </MenuItem>
             ))}
           </Select>

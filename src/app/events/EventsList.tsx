@@ -150,104 +150,110 @@ export default function EventsList({ events }: EventsListProps) {
         </Button>
       </Box>
       <Stack spacing={1.5}>
-        {parentEvents.map((event) => (
-          <Card
-            key={event.id}
-            sx={{
-              width: '100%',
-              position: 'relative',
-              borderColor: 'divider',
-            }}
-          >
-            <CardActionArea component="div" onClick={() => router.push(`/events/${event.id}`)}>
-              <CardContent sx={{ pr: 1 }}>
-                <Box
-                  sx={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    gap: 1,
-                    mb: 0.5,
-                  }}
-                >
-                  <Box sx={{ minWidth: 0 }}>
-                    {/* Thumbnail if available */}
-                    {(event as any).images && (event as any).images.length > 0 ? (
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <img
-                          src={(event as any).images[0]}
-                          alt="thumb"
-                          style={{ width: 56, height: 40, objectFit: 'cover', borderRadius: 6 }}
-                        />
+        {parentEvents.map((event) => {
+          const perception = (event as any).perception ?? 'Neutral'
+          const cardBorderColor =
+            perception === 'Positive'
+              ? 'success.main'
+              : perception === 'Negative'
+                ? 'error.main'
+                : 'divider'
+
+          return (
+            <Card
+              key={event.id}
+              sx={{ width: '100%', position: 'relative', borderColor: cardBorderColor }}
+            >
+              <CardActionArea component="div" onClick={() => router.push(`/events/${event.id}`)}>
+                <CardContent sx={{ pr: 1 }}>
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      gap: 1,
+                      mb: 0.5,
+                    }}
+                  >
+                    <Box sx={{ minWidth: 0 }}>
+                      {/* Thumbnail if available */}
+                      {(event as any).images && (event as any).images.length > 0 ? (
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <img
+                            src={(event as any).images[0]}
+                            alt="thumb"
+                            style={{ width: 56, height: 40, objectFit: 'cover', borderRadius: 6 }}
+                          />
+                          <Typography variant="subtitle1" noWrap>
+                            {event.title}
+                          </Typography>
+                        </Box>
+                      ) : (
                         <Typography variant="subtitle1" noWrap>
                           {event.title}
                         </Typography>
-                      </Box>
-                    ) : (
-                      <Typography variant="subtitle1" noWrap>
-                        {event.title}
-                      </Typography>
-                    )}
+                      )}
 
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                        {new Date(event.createdAt).toLocaleString()}
-                      </Typography>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                          {new Date(event.createdAt).toLocaleString()}
+                        </Typography>
+                      </Box>
+                    </Box>
+
+                    {/* Options menu in upper right: Verification chip + Edit / Delete */}
+                    <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+                      {event.verificationStatus && (
+                        <Chip
+                          label={event.verificationStatus}
+                          size="small"
+                          color={
+                            event.verificationStatus === 'Verified True'
+                              ? 'success'
+                              : event.verificationStatus === 'Verified False'
+                                ? 'warning'
+                                : event.verificationStatus === 'Pending'
+                                  ? 'info'
+                                  : event.verificationStatus === 'True without Verification'
+                                    ? 'info'
+                                    : event.verificationStatus === 'Question Mark'
+                                      ? 'warning'
+                                      : 'default'
+                          }
+                        />
+                      )}
+                      <IconButton
+                        aria-label={`options-event-${event.id}`}
+                        size="small"
+                        onClick={(e) => openMenu(e, event)}
+                      >
+                        <MoreVertIcon fontSize="small" />
+                      </IconButton>
                     </Box>
                   </Box>
 
-                  {/* Options menu in upper right: Verification chip + Edit / Delete */}
-                  <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
-                    {event.verificationStatus && (
-                      <Chip
-                        label={event.verificationStatus}
-                        size="small"
-                        color={
-                          event.verificationStatus === 'Verified True'
-                            ? 'success'
-                            : event.verificationStatus === 'Verified False'
-                              ? 'warning'
-                              : event.verificationStatus === 'Pending'
-                                ? 'info'
-                                : event.verificationStatus === 'True without Verification'
-                                  ? 'info'
-                                  : event.verificationStatus === 'Question Mark'
-                                    ? 'warning'
-                                    : 'default'
-                        }
-                      />
-                    )}
-                    <IconButton
-                      aria-label={`options-event-${event.id}`}
-                      size="small"
-                      onClick={(e) => openMenu(e, event)}
+                  {event.description && (
+                    <Typography
+                      variant="body2"
+                      color="text.secondary"
+                      sx={{
+                        display: '-webkit-box',
+                        WebkitLineClamp: 2,
+                        WebkitBoxOrient: 'vertical',
+                        overflow: 'hidden',
+                        mt: 0.5,
+                      }}
                     >
-                      <MoreVertIcon fontSize="small" />
-                    </IconButton>
-                  </Box>
-                </Box>
+                      {event.description}
+                    </Typography>
+                  )}
 
-                {event.description && (
-                  <Typography
-                    variant="body2"
-                    color="text.secondary"
-                    sx={{
-                      display: '-webkit-box',
-                      WebkitLineClamp: 2,
-                      WebkitBoxOrient: 'vertical',
-                      overflow: 'hidden',
-                      mt: 0.5,
-                    }}
-                  >
-                    {event.description}
-                  </Typography>
-                )}
-
-                {/* Tags removed from event cards per UI change */}
-              </CardContent>
-            </CardActionArea>
-          </Card>
-        ))}
+                  {/* Tags removed from event cards per UI change */}
+                </CardContent>
+              </CardActionArea>
+            </Card>
+          )
+        })}
       </Stack>
 
       {/* Options menu (single instance anchored to clicked item) */}

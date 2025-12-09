@@ -23,8 +23,16 @@ export default function EventHeaderCard({ event }: Props) {
   const [openEdit, setOpenEdit] = useState(false)
   const router = useRouter()
 
+  const perception = (event as any).perception ?? 'Neutral'
+  const cardBorderColor =
+    perception === 'Positive'
+      ? 'success.main'
+      : perception === 'Negative'
+        ? 'error.main'
+        : 'divider'
+
   return (
-    <Card sx={{ width: '100%', position: 'relative', borderColor: 'divider', mb: 3 }}>
+    <Card sx={{ width: '100%', position: 'relative', borderColor: cardBorderColor, mb: 3 }}>
       <CardActionArea
         component="div"
         onClick={(e: React.MouseEvent<HTMLElement>) => {

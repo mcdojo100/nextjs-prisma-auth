@@ -21,6 +21,7 @@ export async function POST(req: Request) {
     images,
     category,
     verificationStatus,
+    perception,
     parentEventId,
   } = await req.json()
 
@@ -54,6 +55,7 @@ export async function POST(req: Request) {
     data: {
       title,
       description: description ?? '',
+      perception: typeof perception === 'string' ? perception : undefined,
       intensity,
       importance,
       emotions: Array.isArray(emotions) ? emotions : [],

@@ -171,82 +171,95 @@ export default function SubEventWorkspace({ eventId, subEvents }: Props) {
               const tb = new Date(b.createdAt).getTime()
               return subSortOrder === 'desc' ? tb - ta : ta - tb
             })
-            .map((s) => (
-              <Card key={s.id} sx={{ width: '100%', position: 'relative', borderColor: 'divider' }}>
-                <CardActionArea
-                  component="div"
-                  onClick={() => {
-                    setViewEvent(s)
-                    setViewDialogOpen(true)
-                  }}
+            .map((s) => {
+              const perception = (s as any).perception ?? 'Neutral'
+              const cardBorderColor =
+                perception === 'Positive'
+                  ? 'success.main'
+                  : perception === 'Negative'
+                    ? 'error.main'
+                    : 'divider'
+
+              return (
+                <Card
+                  key={s.id}
+                  sx={{ width: '100%', position: 'relative', borderColor: cardBorderColor }}
                 >
-                  <CardContent sx={{ pr: 1 }}>
-                    <Box
-                      sx={{
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        mb: 0.5,
-                      }}
-                    >
-                      <Typography variant="subtitle1" noWrap>
-                        {s.title || 'Untitled'}
-                      </Typography>
-                      <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
-                        <Chip
-                          label={s.importance ? `Imp: ${s.importance}` : ''}
-                          size="small"
-                          color={
-                            s.importance >= 8
-                              ? 'error'
-                              : s.importance >= 6
-                                ? 'warning'
-                                : s.importance >= 4
-                                  ? 'info'
-                                  : 'success'
-                          }
-                          sx={{ display: s.importance ? 'inline-flex' : 'none' }}
-                        />
-                        <IconButton
-                          aria-label={`subevent-options-${s.id}`}
-                          size="small"
-                          onClick={(e) => openMenu(e, s.id)}
-                          aria-controls={menuState ? 'subevent-options-menu' : undefined}
-                          aria-haspopup="true"
-                          aria-expanded={
-                            menuState && menuState.subEventId === s.id ? 'true' : undefined
-                          }
-                        >
-                          <MoreVertIcon fontSize="small" />
-                        </IconButton>
-                      </Box>
-                    </Box>
-
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                        {new Date(s.createdAt).toLocaleString()}
-                      </Typography>
-                    </Box>
-
-                    {s.description && (
-                      <Typography
-                        variant="body2"
-                        color="text.secondary"
+                  <CardActionArea
+                    component="div"
+                    onClick={() => {
+                      setViewEvent(s)
+                      setViewDialogOpen(true)
+                    }}
+                  >
+                    <CardContent sx={{ pr: 1 }}>
+                      <Box
                         sx={{
-                          display: '-webkit-box',
-                          WebkitLineClamp: 2,
-                          WebkitBoxOrient: 'vertical',
-                          overflow: 'hidden',
-                          mt: 0.5,
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                          mb: 0.5,
                         }}
                       >
-                        {s.description}
-                      </Typography>
-                    )}
-                  </CardContent>
-                </CardActionArea>
-              </Card>
-            ))}
+                        <Typography variant="subtitle1" noWrap>
+                          {s.title || 'Untitled'}
+                        </Typography>
+                        <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+                          <Chip
+                            label={s.importance ? `Imp: ${s.importance}` : ''}
+                            size="small"
+                            color={
+                              s.importance >= 8
+                                ? 'error'
+                                : s.importance >= 6
+                                  ? 'warning'
+                                  : s.importance >= 4
+                                    ? 'info'
+                                    : 'success'
+                            }
+                            sx={{ display: s.importance ? 'inline-flex' : 'none' }}
+                          />
+                          <IconButton
+                            aria-label={`subevent-options-${s.id}`}
+                            size="small"
+                            onClick={(e) => openMenu(e, s.id)}
+                            aria-controls={menuState ? 'subevent-options-menu' : undefined}
+                            aria-haspopup="true"
+                            aria-expanded={
+                              menuState && menuState.subEventId === s.id ? 'true' : undefined
+                            }
+                          >
+                            <MoreVertIcon fontSize="small" />
+                          </IconButton>
+                        </Box>
+                      </Box>
+
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                          {new Date(s.createdAt).toLocaleString()}
+                        </Typography>
+                      </Box>
+
+                      {s.description && (
+                        <Typography
+                          variant="body2"
+                          color="text.secondary"
+                          sx={{
+                            display: '-webkit-box',
+                            WebkitLineClamp: 2,
+                            WebkitBoxOrient: 'vertical',
+                            overflow: 'hidden',
+                            mt: 0.5,
+                          }}
+                        >
+                          {s.description}
+                        </Typography>
+                      )}
+                    </CardContent>
+                  </CardActionArea>
+                </Card>
+              )
+            })}
         </Stack>
       )}
 

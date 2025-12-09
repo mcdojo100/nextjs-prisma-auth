@@ -152,52 +152,52 @@ export default function LogicForm({
           minRows={2}
         />
 
-        {/* Status and Importance on same row (responsive) */}
-        <Box sx={{ display: 'flex', gap: 2, flexDirection: { xs: 'column', sm: 'row' } }}>
-          {/* Left: Status */}
-          <Box sx={{ width: { xs: '100%', sm: '40%' } }}>
-            <TextField
-              select
-              label="Status"
-              value={status}
-              onChange={(e) => setStatus(e.target.value)}
-              fullWidth
-            >
-              {STATUS_OPTIONS.map((option) => (
-                <MenuItem key={option} value={option}>
-                  {option}
-                </MenuItem>
-              ))}
-            </TextField>
-            <TextField
-              select
-              label="Perception"
-              value={perception}
-              onChange={(e) => setPerception(e.target.value)}
-              fullWidth
-              sx={{ mt: 1 }}
-            >
-              <MenuItem value="Positive">Positive</MenuItem>
-              <MenuItem value="Neutral">Neutral</MenuItem>
-              <MenuItem value="Negative">Negative</MenuItem>
-            </TextField>
-          </Box>
+        {/* Status (full row) */}
+        <Box>
+          <TextField
+            select
+            label="Status"
+            value={status}
+            onChange={(e) => setStatus(e.target.value)}
+            fullWidth
+          >
+            {STATUS_OPTIONS.map((option) => (
+              <MenuItem key={option} value={option}>
+                {option}
+              </MenuItem>
+            ))}
+          </TextField>
+        </Box>
 
-          {/* Right: Importance (slider) */}
-          <Box sx={{ width: { xs: '100%', sm: '60%' } }}>
-            <Typography gutterBottom>Importance (1–10)</Typography>
-            <Slider
-              aria-label="importance-slider"
-              value={importance}
-              onChange={(_, value) => {
-                if (typeof value === 'number') setImportance(value)
-              }}
-              step={1}
-              min={1}
-              max={10}
-              valueLabelDisplay="auto"
-            />
-          </Box>
+        {/* Perception (full row) */}
+        <Box sx={{ mt: 1 }}>
+          <TextField
+            select
+            label="Perception"
+            value={perception}
+            onChange={(e) => setPerception(e.target.value)}
+            fullWidth
+          >
+            <MenuItem value="Positive">Positive</MenuItem>
+            <MenuItem value="Neutral">Neutral</MenuItem>
+            <MenuItem value="Negative">Negative</MenuItem>
+          </TextField>
+        </Box>
+
+        {/* Importance (full row) */}
+        <Box sx={{ mt: 2 }}>
+          <Typography gutterBottom>Importance (1–10)</Typography>
+          <Slider
+            aria-label="importance-slider"
+            value={importance}
+            onChange={(_, value) => {
+              if (typeof value === 'number') setImportance(value)
+            }}
+            step={1}
+            min={1}
+            max={10}
+            valueLabelDisplay="auto"
+          />
         </Box>
 
         <TextField

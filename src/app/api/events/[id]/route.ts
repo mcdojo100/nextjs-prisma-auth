@@ -25,6 +25,7 @@ export async function PUT(req: NextRequest, context: RouteContext) {
   const {
     title,
     description,
+    perception,
     intensity,
     importance,
     emotions,
@@ -46,6 +47,11 @@ export async function PUT(req: NextRequest, context: RouteContext) {
       { error: 'verificationStatus must be a string if provided' },
       { status: 400 },
     )
+  }
+
+  // optional type check for perception
+  if (perception !== undefined && typeof perception !== 'string') {
+    return NextResponse.json({ error: 'perception must be a string if provided' }, { status: 400 })
   }
 
   // ensure event exists and belongs to this user
@@ -121,6 +127,7 @@ export async function PUT(req: NextRequest, context: RouteContext) {
       data: {
         title,
         description: description ?? '',
+        perception: typeof perception === 'string' ? perception : existing.perception,
         intensity,
         importance,
         emotions: Array.isArray(emotions) ? emotions : [],
