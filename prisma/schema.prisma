@@ -107,6 +107,7 @@ model Logic {
   assumptions String    // paragraph
   patterns    String    // paragraph
   actions     String    // paragraph
+    perception String @default("Neutral")
 
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
