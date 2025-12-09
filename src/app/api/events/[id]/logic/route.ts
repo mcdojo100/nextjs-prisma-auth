@@ -7,7 +7,17 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
   try {
     const body = await request.json()
-    const { title, description, importance, status, facts, assumptions, patterns, actions } = body
+    const {
+      title,
+      description,
+      perception,
+      importance,
+      status,
+      facts,
+      assumptions,
+      patterns,
+      actions,
+    } = body
 
     // Server-side validation: only `title` is required. Other fields are optional
     if (!title || typeof title !== 'string' || !title.trim()) {
@@ -19,6 +29,10 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       typeof importance === 'number' && !Number.isNaN(importance) ? importance : 5
     const safeImportanceClamped = Math.min(10, Math.max(1, safeImportance))
     const safeStatus = typeof status === 'string' && status ? status : 'Open'
+    const safePerception =
+      typeof perception === 'string' && ['Positive', 'Neutral', 'Negative'].includes(perception)
+        ? perception
+        : 'Neutral'
     const safeFacts = typeof facts === 'string' ? facts : ''
     const safeAssumptions = typeof assumptions === 'string' ? assumptions : ''
     const safePatterns = typeof patterns === 'string' ? patterns : ''
@@ -38,6 +52,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       data: {
         title: title ?? '',
         description: description ?? '',
+        perception: safePerception,
         importance: safeImportanceClamped,
         status: safeStatus,
         facts: safeFacts,
@@ -51,6 +66,6 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     return NextResponse.json(logic, { status: 201 })
   } catch (err) {
     console.error('Error creating logic:', err)
-    return NextResponse.json({ error: 'Failed to create analysis' }, { status: 500 })
+    return NextResponse.json({ error: 'Failed to create note' }, { status: 500 })
   }
 }

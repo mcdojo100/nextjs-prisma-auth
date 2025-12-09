@@ -10,13 +10,24 @@ export async function PUT(
 
   try {
     const body = await request.json()
-    const { title, description, importance, status, facts, assumptions, patterns, actions } = body
+    const {
+      title,
+      description,
+      perception,
+      importance,
+      status,
+      facts,
+      assumptions,
+      patterns,
+      actions,
+    } = body
 
     const logic = await db.logic.update({
       where: { id: logicId },
       data: {
         title: title ?? undefined,
         description: description ?? undefined,
+        perception: perception ?? undefined,
         importance,
         status,
         facts,
@@ -29,7 +40,7 @@ export async function PUT(
     return NextResponse.json(logic, { status: 200 })
   } catch (err) {
     console.error('Error updating logic:', err)
-    return NextResponse.json({ error: 'Failed to update analysis' }, { status: 500 })
+    return NextResponse.json({ error: 'Failed to update note' }, { status: 500 })
   }
 }
 

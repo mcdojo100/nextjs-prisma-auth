@@ -30,6 +30,7 @@ import LogicForm from '../LogicForm'
 type LogicWithTitleDesc = PrismaLogic & {
   title: string
   description: string
+  perception?: string
 }
 
 type LogicWorkspaceProps = {
@@ -66,6 +67,7 @@ export default function LogicWorkspace({ eventId, logics }: LogicWorkspaceProps)
       ? {
           title: selectedLogic.title,
           description: selectedLogic.description,
+          perception: selectedLogic.perception,
           importance: selectedLogic.importance,
           status: selectedLogic.status,
           facts: selectedLogic.facts,
@@ -212,37 +214,36 @@ export default function LogicWorkspace({ eventId, logics }: LogicWorkspaceProps)
         </Typography>
       ) : (
         <Stack spacing={1.5}>
-          {sortedLogics.map((logic) => (
-            <Card
-              key={logic.id}
-              sx={{
-                width: '100%',
-                position: 'relative',
-                borderColor: 'divider',
-              }}
-            >
-              {/* ⬅️ FIX: make CardActionArea a <div>, not a <button> */}
-              <CardActionArea component="div" onClick={() => handleOpenEdit(logic.id)}>
-                <CardContent sx={{ pr: 1 }}>
-                  <Box
-                    sx={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                      mb: 0.5,
-                    }}
-                  >
-                    <Typography variant="subtitle1" noWrap>
-                      {logic.title || 'Untitled note'}
-                    </Typography>
+          {sortedLogics.map((logic) => {
+            const perception = logic.perception ?? 'Neutral'
+            const cardBorderColor =
+              perception === 'Positive'
+                ? 'success.main'
+                : perception === 'Negative'
+                  ? 'error.main'
+                  : 'divider'
+
+            return (
+              <Card
+                key={logic.id}
+                sx={{ width: '100%', position: 'relative', borderColor: cardBorderColor }}
+              >
+                {/* make CardActionArea a <div>, not a <button> */}
+                <CardActionArea component="div" onClick={() => handleOpenEdit(logic.id)}>
+                  <CardContent sx={{ pr: 1 }}>
                     <Box
                       sx={{
                         display: 'flex',
-                        gap: 1,
+                        justifyContent: 'space-between',
                         alignItems: 'center',
+                        mb: 0.5,
                       }}
                     >
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <Typography variant="subtitle1" noWrap>
+                        {logic.title || 'Untitled note'}
+                      </Typography>
+
+                      <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
                         <Chip
                           label={`Imp: ${logic.importance}`}
                           size="small"
@@ -256,6 +257,7 @@ export default function LogicWorkspace({ eventId, logics }: LogicWorkspaceProps)
                                   : 'success'
                           }
                         />
+
                         <IconButton
                           aria-label={`logic-options-${logic.id}`}
                           size="small"
@@ -270,33 +272,33 @@ export default function LogicWorkspace({ eventId, logics }: LogicWorkspaceProps)
                         </IconButton>
                       </Box>
                     </Box>
-                  </Box>
 
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                      {formatCreatedAt(logic.createdAt as any)}
-                    </Typography>
-                  </Box>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                        {formatCreatedAt(logic.createdAt as any)}
+                      </Typography>
+                    </Box>
 
-                  {logic.description && (
-                    <Typography
-                      variant="body2"
-                      color="text.secondary"
-                      sx={{
-                        display: '-webkit-box',
-                        WebkitLineClamp: 2,
-                        WebkitBoxOrient: 'vertical',
-                        overflow: 'hidden',
-                        mt: 0.5,
-                      }}
-                    >
-                      {logic.description}
-                    </Typography>
-                  )}
-                </CardContent>
-              </CardActionArea>
-            </Card>
-          ))}
+                    {logic.description && (
+                      <Typography
+                        variant="body2"
+                        color="text.secondary"
+                        sx={{
+                          display: '-webkit-box',
+                          WebkitLineClamp: 2,
+                          WebkitBoxOrient: 'vertical',
+                          overflow: 'hidden',
+                          mt: 0.5,
+                        }}
+                      >
+                        {logic.description}
+                      </Typography>
+                    )}
+                  </CardContent>
+                </CardActionArea>
+              </Card>
+            )
+          })}
         </Stack>
       )}
 

@@ -21,6 +21,7 @@ type LogicFormProps = {
   initialData?: {
     title?: string
     description?: string
+    perception?: string
     importance: number
     status: string
     facts: string
@@ -50,6 +51,9 @@ export default function LogicForm({
   const [status, setStatus] = useState(
     initialData?.status ?? 'Open', // ⬅️ default to "Open"
   )
+  const [perception, setPerception] = useState<string | undefined>(
+    initialData?.perception ?? 'Neutral',
+  )
   const [facts, setFacts] = useState(initialData?.facts ?? '')
   const [assumptions, setAssumptions] = useState(initialData?.assumptions ?? '')
   const [patterns, setPatterns] = useState(initialData?.patterns ?? '')
@@ -64,6 +68,7 @@ export default function LogicForm({
       setDescription(initialData.description ?? '')
       setImportance(initialData.importance)
       setStatus(initialData.status || 'Open')
+      setPerception(initialData.perception ?? 'Neutral')
       setFacts(initialData.facts)
       setAssumptions(initialData.assumptions)
       setPatterns(initialData.patterns)
@@ -75,6 +80,7 @@ export default function LogicForm({
       setDescription('')
       setImportance(5)
       setStatus('Open')
+      setPerception('Neutral')
       setFacts('')
       setAssumptions('')
       setPatterns('')
@@ -100,6 +106,7 @@ export default function LogicForm({
         body: JSON.stringify({
           title,
           description,
+          perception,
           importance,
           status,
           facts,
@@ -161,6 +168,18 @@ export default function LogicForm({
                   {option}
                 </MenuItem>
               ))}
+            </TextField>
+            <TextField
+              select
+              label="Perception"
+              value={perception}
+              onChange={(e) => setPerception(e.target.value)}
+              fullWidth
+              sx={{ mt: 1 }}
+            >
+              <MenuItem value="Positive">Positive</MenuItem>
+              <MenuItem value="Neutral">Neutral</MenuItem>
+              <MenuItem value="Negative">Negative</MenuItem>
             </TextField>
           </Box>
 
