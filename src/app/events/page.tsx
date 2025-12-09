@@ -33,6 +33,7 @@ export default async function EventsPage() {
       updatedAt: true,
       userId: true,
       parentEventId: true,
+      perception: true,
     },
   })
 
