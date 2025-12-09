@@ -13,7 +13,12 @@ import {
   Checkbox,
   ListItemText,
   Chip,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  IconButton,
 } from '@mui/material'
+import Close from '@mui/icons-material/Close'
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import type { Event as PrismaEvent } from '@prisma/client'
@@ -42,6 +47,8 @@ export default function EventForm({
   const [images, setImages] = useState<string[]>((initialEvent as any)?.images ?? [])
   const [selectedFiles, setSelectedFiles] = useState<File[]>([])
   const [previews, setPreviews] = useState<string[]>([])
+  const [previewOpen, setPreviewOpen] = useState(false)
+  const [previewSrc, setPreviewSrc] = useState<string | null>(null)
   const [verificationStatus, setVerificationStatus] = useState<string>('Pending')
   const [category, setCategory] = useState<string>('')
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -256,6 +263,28 @@ export default function EventForm({
           />
         </Box>
 
+        <Dialog open={previewOpen} onClose={() => setPreviewOpen(false)} maxWidth="lg" fullWidth>
+          <DialogTitle>
+            Image Preview
+            <IconButton
+              aria-label="close"
+              onClick={() => setPreviewOpen(false)}
+              sx={{ position: 'absolute', right: 8, top: 8 }}
+            >
+              <Close />
+            </IconButton>
+          </DialogTitle>
+          <DialogContent dividers sx={{ display: 'flex', justifyContent: 'center' }}>
+            {previewSrc && (
+              <img
+                src={previewSrc}
+                alt="preview-large"
+                style={{ maxWidth: '100%', maxHeight: '80vh', objectFit: 'contain' }}
+              />
+            )}
+          </DialogContent>
+        </Dialog>
+
         <Box>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
             <span>Importance</span>
@@ -417,7 +446,18 @@ export default function EventForm({
               <Box key={src}>
                 <img
                   src={src}
-                  style={{ width: 96, height: 64, objectFit: 'cover', borderRadius: 4 }}
+                  alt="uploaded"
+                  style={{
+                    width: 96,
+                    height: 64,
+                    objectFit: 'cover',
+                    borderRadius: 4,
+                    cursor: 'pointer',
+                  }}
+                  onClick={() => {
+                    setPreviewSrc(src)
+                    setPreviewOpen(true)
+                  }}
                 />
                 <Button
                   size="small"
@@ -432,7 +472,18 @@ export default function EventForm({
               <Box key={p}>
                 <img
                   src={p}
-                  style={{ width: 96, height: 64, objectFit: 'cover', borderRadius: 4 }}
+                  alt={`preview-${idx}`}
+                  style={{
+                    width: 96,
+                    height: 64,
+                    objectFit: 'cover',
+                    borderRadius: 4,
+                    cursor: 'pointer',
+                  }}
+                  onClick={() => {
+                    setPreviewSrc(p)
+                    setPreviewOpen(true)
+                  }}
                 />
                 <Button
                   size="small"
