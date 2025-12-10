@@ -19,8 +19,13 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
+  Tabs,
+  Tab,
+  Input,
 } from '@mui/material'
 import MoreVertIcon from '@mui/icons-material/MoreVert'
+import Add from '@mui/icons-material/Add'
+import Remove from '@mui/icons-material/Remove'
 import { useRouter } from 'next/navigation'
 import SortIcon from '@mui/icons-material/Sort'
 import type { Logic as PrismaLogic } from '@prisma/client'
@@ -82,12 +87,21 @@ export default function LogicWorkspace({ eventId, logics }: LogicWorkspaceProps)
   const handleOpenCreate = () => {
     setMode('create')
     setEditingLogicId(null)
+    // reset images / previews / selected files for a fresh create dialog
+    setImages([])
+    setPreviews([])
+    setSelectedFiles([])
     setDialogOpen(true)
   }
 
   const handleOpenEdit = (logicId: string) => {
     setMode('view-edit')
     setEditingLogicId(logicId)
+    // populate images for the selected logic into the Images tab
+    const found = logics.find((l) => l.id === logicId)
+    setImages(found?.images ?? [])
+    setPreviews([])
+    setSelectedFiles([])
     setDialogOpen(true)
   }
 
@@ -111,6 +125,10 @@ export default function LogicWorkspace({ eventId, logics }: LogicWorkspaceProps)
   // Menu state for per-logic options (Edit / Delete)
   const [menuAnchorEl, setMenuAnchorEl] = useState<null | HTMLElement>(null)
   const [menuLogicId, setMenuLogicId] = useState<string | null>(null)
+  const [tab, setTab] = useState<number>(0)
+  const [images, setImages] = useState<string[]>([])
+  const [previews, setPreviews] = useState<string[]>([])
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([])
 
   const openMenu = (e: MouseEvent<HTMLElement>, logicId: string) => {
     e.stopPropagation()
@@ -196,13 +214,14 @@ export default function LogicWorkspace({ eventId, logics }: LogicWorkspaceProps)
           <Button
             variant="contained"
             size="small"
+            startIcon={<Add />}
             sx={{
               height: '30.75px',
               width: { xs: '100%', sm: 'auto' },
             }}
             onClick={handleOpenCreate}
           >
-            + New Note
+            New Note
           </Button>
         </Box>
       </Box>
@@ -303,24 +322,145 @@ export default function LogicWorkspace({ eventId, logics }: LogicWorkspaceProps)
       )}
 
       {/* Dialog with LogicForm */}
-      <Dialog open={dialogOpen} onClose={handleCloseDialog} fullWidth maxWidth="sm">
+      <Dialog
+        open={dialogOpen}
+        onClose={handleCloseDialog}
+        fullWidth
+        maxWidth="sm"
+        PaperProps={{
+          sx: { height: '80vh', maxHeight: '80vh', display: 'flex', flexDirection: 'column' },
+        }}
+      >
         <DialogTitle>{formMode === 'create' ? 'New Note' : 'Edit Note'}</DialogTitle>
-        <DialogContent dividers>
-          <LogicForm
-            eventId={eventId}
-            mode={formMode}
-            logicId={formLogicId}
-            initialData={formInitialData}
-            onSuccess={() => {
-              if (formMode === 'create') {
-                setMode('create')
-              }
-              setDialogOpen(false)
-              router.refresh()
-            }}
-            onCancel={handleCloseDialog}
-          />
+        <DialogContent dividers sx={{ overflowY: 'auto', flex: 1 }}>
+          <Tabs value={tab} onChange={(_, v) => setTab(v)}>
+            <Tab label="Details" />
+            <Tab label="Images" />
+          </Tabs>
+
+          {/* Keep the form mounted so the dialog's submit button (which targets the form by id)
+              still works when the user is on the Images tab. We hide it visually when tab !== 0. */}
+          <Box sx={{ mt: 1, display: tab === 0 ? 'block' : 'none' }}>
+            <LogicForm
+              eventId={eventId}
+              mode={formMode}
+              logicId={formLogicId}
+              initialData={formInitialData}
+              onSuccess={() => {
+                if (formMode === 'create') setMode('create')
+                setDialogOpen(false)
+                router.refresh()
+              }}
+              onCancel={handleCloseDialog}
+              formId="logic-form"
+              hideActions={true}
+              selectedFiles={selectedFiles}
+              setSelectedFiles={setSelectedFiles}
+              images={images}
+              setImages={setImages}
+            />
+          </Box>
+
+          {tab === 1 && (
+            <Box sx={{ mt: 1 }}>
+              <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+                <IconButton
+                  color="primary"
+                  component="label"
+                  aria-label="upload images"
+                  sx={{ width: 40, height: 40 }}
+                >
+                  <Add />
+                  <input
+                    hidden
+                    multiple
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => {
+                      const files = Array.from(e.target.files ?? [])
+                      setSelectedFiles((prev) => [...prev, ...files])
+                      const newPreviews = files.map((f) => URL.createObjectURL(f))
+                      setPreviews((prev) => [...prev, ...newPreviews])
+                    }}
+                  />
+                </IconButton>
+              </Box>
+
+              <Box sx={{ display: 'flex', gap: 1, mt: 1, flexWrap: 'wrap' }}>
+                {images.map((src) => (
+                  <Box key={src} sx={{ position: 'relative' }}>
+                    <IconButton
+                      size="small"
+                      onClick={() => setImages((prev) => prev.filter((p) => p !== src))}
+                      sx={{
+                        position: 'absolute',
+                        top: 4,
+                        right: 4,
+                        bgcolor: 'rgba(0,0,0,0.45)',
+                        color: 'common.white',
+                        '&:hover': { bgcolor: 'rgba(0,0,0,0.6)' },
+                        zIndex: 2,
+                      }}
+                    >
+                      <Remove fontSize="small" />
+                    </IconButton>
+                    <img
+                      src={src}
+                      alt="note-image"
+                      style={{
+                        width: 96,
+                        height: 64,
+                        objectFit: 'cover',
+                        borderRadius: 4,
+                        cursor: 'pointer',
+                      }}
+                    />
+                  </Box>
+                ))}
+
+                {previews.map((p, idx) => (
+                  <Box key={p} sx={{ position: 'relative' }}>
+                    <IconButton
+                      size="small"
+                      onClick={() => {
+                        setPreviews((ps) => ps.filter((x) => x !== p))
+                        setSelectedFiles((sf) => sf.filter((_, i) => i !== idx))
+                      }}
+                      sx={{
+                        position: 'absolute',
+                        top: 4,
+                        right: 4,
+                        bgcolor: 'rgba(0,0,0,0.45)',
+                        color: 'common.white',
+                        '&:hover': { bgcolor: 'rgba(0,0,0,0.6)' },
+                        zIndex: 2,
+                      }}
+                    >
+                      <Remove fontSize="small" />
+                    </IconButton>
+                    <img
+                      src={p}
+                      alt={`preview-${idx}`}
+                      style={{
+                        width: 96,
+                        height: 64,
+                        objectFit: 'cover',
+                        borderRadius: 4,
+                        cursor: 'pointer',
+                      }}
+                    />
+                  </Box>
+                ))}
+              </Box>
+            </Box>
+          )}
         </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseDialog}>Cancel</Button>
+          <Button type="submit" form="logic-form" variant="contained">
+            {formMode === 'create' ? 'Create Note' : 'Save Changes'}
+          </Button>
+        </DialogActions>
       </Dialog>
 
       {/* Options menu for Edit/Delete (single shared menu) */}

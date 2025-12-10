@@ -108,6 +108,7 @@ model Logic {
   patterns    String    // paragraph
   actions     String    // paragraph
     perception String @default("Neutral")
+    images String[] @default([])
 
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt

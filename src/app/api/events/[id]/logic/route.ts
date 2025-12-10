@@ -17,6 +17,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       assumptions,
       patterns,
       actions,
+      images,
     } = body
 
     // Server-side validation: only `title` is required. Other fields are optional
@@ -48,6 +49,16 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       return NextResponse.json({ error: 'Event not found' }, { status: 404 })
     }
 
+    // Normalize images if provided; otherwise default to empty array
+    let safeImages: string[] = []
+    if (images !== undefined) {
+      if (Array.isArray(images)) {
+        safeImages = Array.from(new Set(images.map((i: any) => String(i)).filter(Boolean)))
+      } else {
+        safeImages = []
+      }
+    }
+
     const logic = await db.logic.create({
       data: {
         title: title ?? '',
@@ -59,6 +70,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
         assumptions: safeAssumptions,
         patterns: safePatterns,
         actions: safeActions,
+        images: safeImages,
         eventId: id,
       },
     })

@@ -1,16 +1,7 @@
 'use client'
 
 import { useState, useEffect, FormEvent } from 'react'
-import {
-  Box,
-  TextField,
-  Typography,
-  Slider,
-  Button,
-  Stack,
-  Alert,
-  MenuItem, // ⬅️ NEW
-} from '@mui/material'
+import { Box, TextField, Typography, Slider, Button, Stack, Alert, MenuItem } from '@mui/material'
 import { useRouter } from 'next/navigation'
 
 const STATUS_OPTIONS = ['Open', 'Needs Watch', 'Resolved'] as const
@@ -32,6 +23,12 @@ type LogicFormProps = {
   mode?: 'create' | 'edit'
   onSuccess?: () => void
   onCancel?: () => void
+  formId?: string
+  hideActions?: boolean
+  selectedFiles?: File[]
+  setSelectedFiles?: (files: File[]) => void
+  images?: string[]
+  setImages?: (imgs: string[]) => void
 }
 
 export default function LogicForm({
@@ -41,6 +38,12 @@ export default function LogicForm({
   mode = 'create',
   onSuccess,
   onCancel,
+  formId = 'logic-form',
+  hideActions = false,
+  selectedFiles = [],
+  setSelectedFiles,
+  images = [],
+  setImages,
 }: LogicFormProps) {
   const router = useRouter()
 
@@ -48,9 +51,7 @@ export default function LogicForm({
   const [description, setDescription] = useState(initialData?.description ?? '')
 
   const [importance, setImportance] = useState(initialData?.importance ?? 5)
-  const [status, setStatus] = useState(
-    initialData?.status ?? 'Open', // ⬅️ default to "Open"
-  )
+  const [status, setStatus] = useState(initialData?.status ?? 'Open')
   const [perception, setPerception] = useState<string | undefined>(
     initialData?.perception ?? 'Neutral',
   )
@@ -100,6 +101,28 @@ export default function LogicForm({
         throw new Error('Missing logicId for edit mode')
       }
 
+      let uploadedUrls: string[] = []
+      if (selectedFiles && selectedFiles.length > 0) {
+        try {
+          const form = new FormData()
+          for (const file of selectedFiles) {
+            form.append('files', file)
+          }
+
+          const upl = await fetch('/api/uploads', { method: 'POST', body: form })
+          if (!upl.ok) {
+            throw new Error('Image upload failed')
+          }
+          const uplData = await upl.json()
+          uploadedUrls = uplData?.urls ?? []
+        } catch (err) {
+          console.error('Upload failed:', err)
+          throw err
+        }
+      }
+
+      const mergedImages = [...(images ?? []), ...uploadedUrls]
+
       const res = await fetch(endpoint, {
         method: mode === 'create' ? 'POST' : 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -113,6 +136,7 @@ export default function LogicForm({
           assumptions,
           patterns,
           actions,
+          images: mergedImages,
         }),
       })
 
@@ -123,6 +147,11 @@ export default function LogicForm({
 
       router.refresh()
       onSuccess?.()
+      try {
+        setSelectedFiles?.([])
+      } catch (e) {
+        /* ignore */
+      }
     } catch (err: any) {
       setError(err.message || 'Something went wrong')
     } finally {
@@ -131,7 +160,7 @@ export default function LogicForm({
   }
 
   return (
-    <Box component="form" onSubmit={handleSubmit} sx={{ mt: 1 }}>
+    <Box id={formId} component="form" onSubmit={handleSubmit} sx={{ mt: 1 }}>
       <Stack spacing={2}>
         {error && <Alert severity="error">{error}</Alert>}
 
@@ -152,7 +181,6 @@ export default function LogicForm({
           minRows={2}
         />
 
-        {/* Status (full row) */}
         <Box>
           <TextField
             select
@@ -169,7 +197,6 @@ export default function LogicForm({
           </TextField>
         </Box>
 
-        {/* Perception (full row) */}
         <Box sx={{ mt: 1 }}>
           <TextField
             select
@@ -184,7 +211,6 @@ export default function LogicForm({
           </TextField>
         </Box>
 
-        {/* Importance (full row) */}
         <Box sx={{ mt: 2 }}>
           <Typography gutterBottom>Importance (1–10)</Typography>
           <Slider
@@ -236,16 +262,18 @@ export default function LogicForm({
           minRows={3}
         />
 
-        <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2, mt: 1 }}>
-          {onCancel && (
-            <Button onClick={onCancel} disabled={isSubmitting}>
-              Close
+        {!hideActions && (
+          <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2, mt: 1 }}>
+            {onCancel && (
+              <Button onClick={onCancel} disabled={isSubmitting}>
+                Close
+              </Button>
+            )}
+            <Button type="submit" variant="contained" disabled={isSubmitting}>
+              {mode === 'create' ? 'Add Note' : 'Save Changes'}
             </Button>
-          )}
-          <Button type="submit" variant="contained" disabled={isSubmitting}>
-            {mode === 'create' ? 'Add Note' : 'Save Changes'}
-          </Button>
-        </Box>
+          </Box>
+        )}
       </Stack>
     </Box>
   )

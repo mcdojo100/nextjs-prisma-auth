@@ -20,7 +20,24 @@ export async function PUT(
       assumptions,
       patterns,
       actions,
+      images,
     } = body
+
+    // Fetch existing logic so we can preserve fields like images when omitted
+    const existing = await db.logic.findUnique({ where: { id: logicId } })
+    if (!existing) {
+      return NextResponse.json({ error: 'Not found' }, { status: 404 })
+    }
+
+    // Normalize images similar to events: preserve existing when images is omitted
+    let safeImages = existing.images ?? []
+    if (images !== undefined) {
+      if (Array.isArray(images)) {
+        safeImages = Array.from(new Set(images.map((i: any) => String(i)).filter(Boolean)))
+      } else {
+        safeImages = existing.images ?? []
+      }
+    }
 
     const logic = await db.logic.update({
       where: { id: logicId },
@@ -34,6 +51,7 @@ export async function PUT(
         assumptions,
         patterns,
         actions,
+        images: safeImages,
       },
     })
 
