@@ -343,7 +343,7 @@ export default function LogicWorkspace({ eventId, logics }: LogicWorkspaceProps)
 
           {/* Keep the form mounted so the dialog's submit button (which targets the form by id)
               still works when the user is on the Images tab. We hide it visually when tab !== 0. */}
-          <Box sx={{ mt: 1, display: tab === 0 ? 'block' : 'none' }}>
+          <Box sx={{ mt: 2, display: tab === 0 ? 'block' : 'none' }}>
             <LogicForm
               eventId={eventId}
               mode={formMode}
