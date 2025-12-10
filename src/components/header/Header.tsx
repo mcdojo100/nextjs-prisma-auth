@@ -23,6 +23,7 @@ import Image from 'next/image'
 const routes = [
   { label: 'Home', path: '/' },
   { label: 'Events', path: '/events' },
+  { label: 'Analysis', path: '/analysis' },
 ]
 
 const Header = ({ session }: { session: Session | null }) => {
@@ -35,10 +36,9 @@ const Header = ({ session }: { session: Session | null }) => {
   const visibleRoutes = isLoggedIn ? routes : routes.filter((route) => route.path === '/')
 
   const currentTab = visibleRoutes.findIndex((route) => {
-    if (route.path === '/events') {
-      return pathname.startsWith('/events')
-    }
-    return pathname === route.path
+    // Root must match exactly; other routes match on prefix so subpaths count
+    if (route.path === '/') return pathname === '/'
+    return pathname.startsWith(route.path)
   })
 
   // Mobile menu state
