@@ -119,16 +119,7 @@ export default function EventHeaderCard({ event }: Props) {
             </Typography>
           )}
 
-          {/* Images: show first image as a cover thumbnail */}
-          {(event as any).images && (event as any).images.length > 0 && (
-            <Box sx={{ mt: 1 }}>
-              <img
-                src={(event as any).images[0]}
-                alt="event image"
-                style={{ width: '100%', maxHeight: 200, objectFit: 'cover', borderRadius: 6 }}
-              />
-            </Box>
-          )}
+          {/* Images hidden on event card (show only in detail/editor) */}
 
           {(event as any).tags && (event as any).tags.length > 0 && (
             <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap', mt: 1 }}>

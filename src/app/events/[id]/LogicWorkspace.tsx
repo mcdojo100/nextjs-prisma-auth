@@ -26,6 +26,7 @@ import {
 import MoreVertIcon from '@mui/icons-material/MoreVert'
 import Add from '@mui/icons-material/Add'
 import Remove from '@mui/icons-material/Remove'
+import Close from '@mui/icons-material/Close'
 import { useRouter } from 'next/navigation'
 import SortIcon from '@mui/icons-material/Sort'
 import type { Logic as PrismaLogic } from '@prisma/client'
@@ -129,6 +130,8 @@ export default function LogicWorkspace({ eventId, logics }: LogicWorkspaceProps)
   const [images, setImages] = useState<string[]>([])
   const [previews, setPreviews] = useState<string[]>([])
   const [selectedFiles, setSelectedFiles] = useState<File[]>([])
+  const [previewOpen, setPreviewOpen] = useState(false)
+  const [previewSrc, setPreviewSrc] = useState<string | null>(null)
 
   const openMenu = (e: MouseEvent<HTMLElement>, logicId: string) => {
     e.stopPropagation()
@@ -414,6 +417,10 @@ export default function LogicWorkspace({ eventId, logics }: LogicWorkspaceProps)
                         borderRadius: 4,
                         cursor: 'pointer',
                       }}
+                      onClick={() => {
+                        setPreviewSrc(src)
+                        setPreviewOpen(true)
+                      }}
                     />
                   </Box>
                 ))}
@@ -448,6 +455,10 @@ export default function LogicWorkspace({ eventId, logics }: LogicWorkspaceProps)
                         borderRadius: 4,
                         cursor: 'pointer',
                       }}
+                      onClick={() => {
+                        setPreviewSrc(p)
+                        setPreviewOpen(true)
+                      }}
                     />
                   </Box>
                 ))}
@@ -461,6 +472,46 @@ export default function LogicWorkspace({ eventId, logics }: LogicWorkspaceProps)
             {formMode === 'create' ? 'Create Note' : 'Save Changes'}
           </Button>
         </DialogActions>
+      </Dialog>
+
+      {/* Image preview dialog for note images */}
+      <Dialog
+        open={previewOpen}
+        onClose={() => setPreviewOpen(false)}
+        maxWidth="lg"
+        fullWidth
+        PaperProps={{
+          sx: { height: '80vh', maxHeight: '80vh', display: 'flex', flexDirection: 'column' },
+        }}
+      >
+        <DialogTitle>
+          Image Preview
+          <IconButton
+            aria-label="close"
+            onClick={() => setPreviewOpen(false)}
+            sx={{ position: 'absolute', right: 8, top: 8 }}
+          >
+            <Close />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent
+          dividers
+          sx={{
+            overflowY: 'auto',
+            flex: 1,
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+          }}
+        >
+          {previewSrc && (
+            <img
+              src={previewSrc}
+              alt="preview-large"
+              style={{ maxWidth: '100%', maxHeight: '80vh', objectFit: 'contain' }}
+            />
+          )}
+        </DialogContent>
       </Dialog>
 
       {/* Options menu for Edit/Delete (single shared menu) */}

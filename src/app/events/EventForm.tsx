@@ -282,44 +282,7 @@ export default function EventForm({
               />
             </Box>
 
-            <Dialog
-              open={previewOpen}
-              onClose={() => setPreviewOpen(false)}
-              maxWidth="lg"
-              fullWidth
-              PaperProps={{
-                sx: { height: '80vh', maxHeight: '80vh', display: 'flex', flexDirection: 'column' },
-              }}
-            >
-              <DialogTitle>
-                Image Preview
-                <IconButton
-                  aria-label="close"
-                  onClick={() => setPreviewOpen(false)}
-                  sx={{ position: 'absolute', right: 8, top: 8 }}
-                >
-                  <Close />
-                </IconButton>
-              </DialogTitle>
-              <DialogContent
-                dividers
-                sx={{
-                  overflowY: 'auto',
-                  flex: 1,
-                  display: 'flex',
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                }}
-              >
-                {previewSrc && (
-                  <img
-                    src={previewSrc}
-                    alt="preview-large"
-                    style={{ maxWidth: '100%', maxHeight: '80vh', objectFit: 'contain' }}
-                  />
-                )}
-              </DialogContent>
-            </Dialog>
+            {/* Image preview dialog moved below so it is available on Images tab too */}
 
             <Box>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
@@ -590,6 +553,46 @@ export default function EventForm({
             </Box>
           </>
         )}
+
+        {/* Image preview dialog for event images (always mounted so it works on Images tab) */}
+        <Dialog
+          open={previewOpen}
+          onClose={() => setPreviewOpen(false)}
+          maxWidth="lg"
+          fullWidth
+          PaperProps={{
+            sx: { height: '80vh', maxHeight: '80vh', display: 'flex', flexDirection: 'column' },
+          }}
+        >
+          <DialogTitle>
+            Image Preview
+            <IconButton
+              aria-label="close"
+              onClick={() => setPreviewOpen(false)}
+              sx={{ position: 'absolute', right: 8, top: 8 }}
+            >
+              <Close />
+            </IconButton>
+          </DialogTitle>
+          <DialogContent
+            dividers
+            sx={{
+              overflowY: 'auto',
+              flex: 1,
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+            }}
+          >
+            {previewSrc && (
+              <img
+                src={previewSrc}
+                alt="preview-large"
+                style={{ maxWidth: '100%', maxHeight: '80vh', objectFit: 'contain' }}
+              />
+            )}
+          </DialogContent>
+        </Dialog>
 
         {error && <Box sx={{ color: 'error.main' }}>{error}</Box>}
       </Stack>

@@ -176,23 +176,9 @@ export default function EventsList({ events }: EventsListProps) {
                     }}
                   >
                     <Box sx={{ minWidth: 0 }}>
-                      {/* Thumbnail if available */}
-                      {(event as any).images && (event as any).images.length > 0 ? (
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <img
-                            src={(event as any).images[0]}
-                            alt="thumb"
-                            style={{ width: 56, height: 40, objectFit: 'cover', borderRadius: 6 }}
-                          />
-                          <Typography variant="subtitle1" noWrap>
-                            {event.title}
-                          </Typography>
-                        </Box>
-                      ) : (
-                        <Typography variant="subtitle1" noWrap>
-                          {event.title}
-                        </Typography>
-                      )}
+                      <Typography variant="subtitle1" noWrap>
+                        {event.title}
+                      </Typography>
 
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                         <Typography variant="caption" sx={{ color: 'text.secondary' }}>
