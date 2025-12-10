@@ -285,9 +285,17 @@ export default function EventsList({ events }: EventsListProps) {
       </Menu>
 
       {/* Edit dialog using EventForm */}
-      <Dialog open={editDialogOpen} onClose={closeEditDialog} fullWidth maxWidth="sm">
+      <Dialog
+        open={editDialogOpen}
+        onClose={closeEditDialog}
+        fullWidth
+        maxWidth="sm"
+        PaperProps={{
+          sx: { height: '80vh', maxHeight: '80vh', display: 'flex', flexDirection: 'column' },
+        }}
+      >
         <DialogTitle>Edit Event</DialogTitle>
-        <DialogContent dividers>
+        <DialogContent dividers sx={{ overflowY: 'auto', flex: 1 }}>
           {editEvent && (
             <EventForm
               event={editEvent}
@@ -299,6 +307,12 @@ export default function EventsList({ events }: EventsListProps) {
             />
           )}
         </DialogContent>
+        <DialogActions>
+          <Button onClick={closeEditDialog}>Cancel</Button>
+          <Button type="submit" form="event-form" variant="contained">
+            Save Changes
+          </Button>
+        </DialogActions>
       </Dialog>
 
       {/* Delete confirmation dialog */}

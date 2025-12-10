@@ -90,9 +90,17 @@ export default function EditEventDialog({ event }: EditEventDialogProps) {
         </MenuItem>
       </Menu>
 
-      <Dialog open={editOpen} onClose={() => setEditOpen(false)} fullWidth maxWidth="sm">
+      <Dialog
+        open={editOpen}
+        onClose={() => setEditOpen(false)}
+        fullWidth
+        maxWidth="sm"
+        PaperProps={{
+          sx: { height: '80vh', maxHeight: '80vh', display: 'flex', flexDirection: 'column' },
+        }}
+      >
         <DialogTitle>Edit Event</DialogTitle>
-        <DialogContent dividers>
+        <DialogContent dividers sx={{ overflowY: 'auto', flex: 1 }}>
           <EventForm
             event={event}
             onSuccess={() => {
@@ -102,6 +110,12 @@ export default function EditEventDialog({ event }: EditEventDialogProps) {
             onCancel={() => setEditOpen(false)}
           />
         </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setEditOpen(false)}>Cancel</Button>
+          <Button type="submit" form="event-form" variant="contained">
+            Save Changes
+          </Button>
+        </DialogActions>
       </Dialog>
 
       <Dialog open={confirmOpen} onClose={() => setConfirmOpen(false)} fullWidth maxWidth="xs">

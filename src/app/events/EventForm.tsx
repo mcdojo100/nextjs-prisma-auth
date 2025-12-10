@@ -3,6 +3,8 @@
 import {
   Box,
   Button,
+  Tabs,
+  Tab,
   Slider,
   Stack,
   TextField,
@@ -19,6 +21,8 @@ import {
   IconButton,
 } from '@mui/material'
 import Close from '@mui/icons-material/Close'
+import Add from '@mui/icons-material/Add'
+import Remove from '@mui/icons-material/Remove'
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import type { Event as PrismaEvent } from '@prisma/client'
@@ -28,6 +32,7 @@ type EventFormProps = {
   onSuccess?: () => void
   onCancel?: () => void
   parentEventId?: string | null
+  formId?: string
 }
 
 export default function EventForm({
@@ -35,6 +40,7 @@ export default function EventForm({
   onSuccess,
   onCancel,
   parentEventId,
+  formId = 'event-form',
 }: EventFormProps) {
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
@@ -51,6 +57,7 @@ export default function EventForm({
   const [previewOpen, setPreviewOpen] = useState(false)
   const [previewSrc, setPreviewSrc] = useState<string | null>(null)
   const [verificationStatus, setVerificationStatus] = useState<string>('Pending')
+  const [tab, setTab] = useState<number>(0)
   const [category, setCategory] = useState<string>('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -234,302 +241,357 @@ export default function EventForm({
   }
 
   return (
-    <form onSubmit={handleSubmit}>
+    <form id={formId} onSubmit={handleSubmit}>
       <Stack spacing={2}>
-        <TextField
-          label="Title"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          fullWidth
-          required
-          autoFocus
-        />
+        <Tabs value={tab} onChange={(_, v) => setTab(v)} aria-label="Event form tabs">
+          <Tab label="Details" />
+          <Tab label="Images" />
+        </Tabs>
 
-        <TextField
-          label="Description"
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          fullWidth
-          multiline
-          minRows={3}
-        />
-
-        <Box>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
-            <span>Intensity</span>
-            <span>{intensity}</span>
-          </Box>
-          <Slider
-            value={intensity}
-            onChange={(_, v) => setIntensity(v as number)}
-            min={1}
-            max={10}
-            step={1}
-          />
-        </Box>
-
-        <Dialog open={previewOpen} onClose={() => setPreviewOpen(false)} maxWidth="lg" fullWidth>
-          <DialogTitle>
-            Image Preview
-            <IconButton
-              aria-label="close"
-              onClick={() => setPreviewOpen(false)}
-              sx={{ position: 'absolute', right: 8, top: 8 }}
-            >
-              <Close />
-            </IconButton>
-          </DialogTitle>
-          <DialogContent dividers sx={{ display: 'flex', justifyContent: 'center' }}>
-            {previewSrc && (
-              <img
-                src={previewSrc}
-                alt="preview-large"
-                style={{ maxWidth: '100%', maxHeight: '80vh', objectFit: 'contain' }}
-              />
-            )}
-          </DialogContent>
-        </Dialog>
-
-        <Box>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
-            <span>Importance</span>
-            <span>{importance}</span>
-          </Box>
-          <Slider
-            value={importance}
-            onChange={(_, v) => setImportance(v as number)}
-            min={1}
-            max={10}
-            step={1}
-          />
-        </Box>
-
-        <FormControl fullWidth>
-          <InputLabel id="verification-status-label">Verification Status</InputLabel>
-          <Select
-            labelId="verification-status-label"
-            value={verificationStatus}
-            onChange={(e) => setVerificationStatus(e.target.value as string)}
-            label="Verification Status"
-          >
-            {[
-              'Verified True',
-              'Verified False',
-              'Pending',
-              'True without Verification',
-              'Question Mark',
-              'Closed - Past/Unverified',
-            ].map((s) => (
-              <MenuItem key={s} value={s}>
-                {s}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-
-        <FormControl fullWidth>
-          <InputLabel id="perception-label">Perception</InputLabel>
-          <Select
-            labelId="perception-label"
-            value={perception}
-            onChange={(e) => setPerception(e.target.value as string)}
-            label="Perception"
-          >
-            {['Positive', 'Neutral', 'Negative'].map((p) => (
-              <MenuItem key={p} value={p}>
-                {p}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-
-        <FormControl fullWidth>
-          <InputLabel id="emotions-label">Emotions</InputLabel>
-          <Select
-            labelId="emotions-label"
-            multiple
-            value={emotions}
-            onChange={(e) =>
-              setEmotions(
-                typeof e.target.value === 'string'
-                  ? e.target.value.split(',')
-                  : (e.target.value as string[]),
-              )
-            }
-            renderValue={(sel) => sel.join(', ')}
-            label="Emotions"
-          >
-            {['anger', 'sadness', 'anxiety', 'numbness', 'confusion', 'shame', 'hope', 'calm'].map(
-              (emo) => (
-                <MenuItem key={emo} value={emo}>
-                  <Checkbox checked={emotions.includes(emo)} />
-                  <ListItemText primary={emo} />
-                </MenuItem>
-              ),
-            )}
-          </Select>
-        </FormControl>
-
-        <FormControl fullWidth>
-          <InputLabel id="physical-sensations-label">Physical Sensations</InputLabel>
-          <Select
-            labelId="physical-sensations-label"
-            multiple
-            value={physicalSensations}
-            onChange={(e) =>
-              setPhysicalSensations(
-                typeof e.target.value === 'string'
-                  ? e.target.value.split(',')
-                  : (e.target.value as string[]),
-              )
-            }
-            renderValue={(sel) => sel.join(', ')}
-            label="Physical Sensations"
-          >
-            {[
-              'Tight Chest',
-              'Butterflies/Stomach Flutters',
-              'Headache/Pressure',
-              'Warmth or Heat in the Body',
-              'Shaky or Trembling',
-              'Tension in Shoulders/Neck',
-              'Shortness of Breath',
-              'Fatigue/Heavy Limbs',
-            ].map((s) => (
-              <MenuItem key={s} value={s}>
-                <Checkbox checked={physicalSensations.includes(s)} />
-                <ListItemText primary={s} />
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-
-        <FormControl fullWidth>
-          <InputLabel id="category-label">Category</InputLabel>
-          <Select
-            labelId="category-label"
-            value={category}
-            onChange={(e) => setCategory(e.target.value as string)}
-            label="Category"
-          >
-            {['work', 'relationship', 'self', 'family', 'health'].map((c) => (
-              <MenuItem key={c} value={c}>
-                {c}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-
-        {/* Tags */}
-        <Box>
-          <TextField
-            label="Add tag"
-            value={tagInput}
-            placeholder="type and press Enter"
-            onChange={(e) => setTagInput(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ',') {
-                e.preventDefault()
-                addTagsFromInput(tagInput)
-              }
-            }}
-            fullWidth
-            size="small"
-          />
-          <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap', mt: 1 }}>
-            {tags.map((t) => (
-              <Chip key={t} label={t} onDelete={() => removeTag(t)} size="small" />
-            ))}
-          </Box>
-        </Box>
-
-        {/* Images */}
-        <Box>
-          <Button variant="contained" component="label">
-            Upload Images
-            <input
-              hidden
-              multiple
-              type="file"
-              accept="image/*"
-              onChange={(e) => {
-                const files = Array.from(e.target.files ?? [])
-                setSelectedFiles((prev) => [...prev, ...files]) // append new files
-
-                const newPreviews = files.map((f) => URL.createObjectURL(f))
-                setPreviews((prev) => [...prev, ...newPreviews]) // append previews
-              }}
+        {tab === 0 && (
+          <>
+            <TextField
+              label="Title"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              fullWidth
+              required
+              autoFocus
             />
-          </Button>
 
-          <Box sx={{ display: 'flex', gap: 1, mt: 1, flexWrap: 'wrap' }}>
-            {images.map((src) => (
-              <Box key={src}>
-                <img
-                  src={src}
-                  alt="uploaded"
-                  style={{
-                    width: 96,
-                    height: 64,
-                    objectFit: 'cover',
-                    borderRadius: 4,
-                    cursor: 'pointer',
-                  }}
-                  onClick={() => {
-                    setPreviewSrc(src)
-                    setPreviewOpen(true)
-                  }}
-                />
-                <Button
-                  size="small"
-                  onClick={() => setImages((prev) => prev.filter((p) => p !== src))}
-                >
-                  Remove
-                </Button>
-              </Box>
-            ))}
+            <TextField
+              label="Description"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              fullWidth
+              multiline
+              minRows={3}
+            />
 
-            {previews.map((p, idx) => (
-              <Box key={p}>
-                <img
-                  src={p}
-                  alt={`preview-${idx}`}
-                  style={{
-                    width: 96,
-                    height: 64,
-                    objectFit: 'cover',
-                    borderRadius: 4,
-                    cursor: 'pointer',
-                  }}
-                  onClick={() => {
-                    setPreviewSrc(p)
-                    setPreviewOpen(true)
-                  }}
-                />
-                <Button
-                  size="small"
-                  onClick={() => {
-                    setPreviews((ps) => ps.filter((x) => x !== p))
-                    setSelectedFiles((sf) => sf.filter((_, i) => i !== idx))
-                  }}
-                >
-                  Remove
-                </Button>
+            <Box>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
+                <span>Intensity</span>
+                <span>{intensity}</span>
               </Box>
-            ))}
-          </Box>
-        </Box>
+              <Slider
+                value={intensity}
+                onChange={(_, v) => setIntensity(v as number)}
+                min={1}
+                max={10}
+                step={1}
+              />
+            </Box>
+
+            <Dialog
+              open={previewOpen}
+              onClose={() => setPreviewOpen(false)}
+              maxWidth="lg"
+              fullWidth
+              PaperProps={{
+                sx: { height: '80vh', maxHeight: '80vh', display: 'flex', flexDirection: 'column' },
+              }}
+            >
+              <DialogTitle>
+                Image Preview
+                <IconButton
+                  aria-label="close"
+                  onClick={() => setPreviewOpen(false)}
+                  sx={{ position: 'absolute', right: 8, top: 8 }}
+                >
+                  <Close />
+                </IconButton>
+              </DialogTitle>
+              <DialogContent
+                dividers
+                sx={{
+                  overflowY: 'auto',
+                  flex: 1,
+                  display: 'flex',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                }}
+              >
+                {previewSrc && (
+                  <img
+                    src={previewSrc}
+                    alt="preview-large"
+                    style={{ maxWidth: '100%', maxHeight: '80vh', objectFit: 'contain' }}
+                  />
+                )}
+              </DialogContent>
+            </Dialog>
+
+            <Box>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
+                <span>Importance</span>
+                <span>{importance}</span>
+              </Box>
+              <Slider
+                value={importance}
+                onChange={(_, v) => setImportance(v as number)}
+                min={1}
+                max={10}
+                step={1}
+              />
+            </Box>
+
+            <FormControl fullWidth>
+              <InputLabel id="verification-status-label">Verification Status</InputLabel>
+              <Select
+                labelId="verification-status-label"
+                value={verificationStatus}
+                onChange={(e) => setVerificationStatus(e.target.value as string)}
+                label="Verification Status"
+              >
+                {[
+                  'Verified True',
+                  'Verified False',
+                  'Pending',
+                  'True without Verification',
+                  'Question Mark',
+                  'Closed - Past/Unverified',
+                ].map((s) => (
+                  <MenuItem key={s} value={s}>
+                    {s}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+
+            <FormControl fullWidth>
+              <InputLabel id="perception-label">Perception</InputLabel>
+              <Select
+                labelId="perception-label"
+                value={perception}
+                onChange={(e) => setPerception(e.target.value as string)}
+                label="Perception"
+              >
+                {['Positive', 'Neutral', 'Negative'].map((p) => (
+                  <MenuItem key={p} value={p}>
+                    {p}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+
+            <FormControl fullWidth>
+              <InputLabel id="emotions-label">Emotions</InputLabel>
+              <Select
+                labelId="emotions-label"
+                multiple
+                value={emotions}
+                onChange={(e) =>
+                  setEmotions(
+                    typeof e.target.value === 'string'
+                      ? e.target.value.split(',')
+                      : (e.target.value as string[]),
+                  )
+                }
+                renderValue={(sel) => sel.join(', ')}
+                label="Emotions"
+              >
+                {[
+                  'anger',
+                  'sadness',
+                  'anxiety',
+                  'numbness',
+                  'confusion',
+                  'shame',
+                  'hope',
+                  'calm',
+                ].map((emo) => (
+                  <MenuItem key={emo} value={emo}>
+                    <Checkbox checked={emotions.includes(emo)} />
+                    <ListItemText primary={emo} />
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+
+            <FormControl fullWidth>
+              <InputLabel id="physical-sensations-label">Physical Sensations</InputLabel>
+              <Select
+                labelId="physical-sensations-label"
+                multiple
+                value={physicalSensations}
+                onChange={(e) =>
+                  setPhysicalSensations(
+                    typeof e.target.value === 'string'
+                      ? e.target.value.split(',')
+                      : (e.target.value as string[]),
+                  )
+                }
+                renderValue={(sel) => sel.join(', ')}
+                label="Physical Sensations"
+              >
+                {[
+                  'Tight Chest',
+                  'Butterflies/Stomach Flutters',
+                  'Headache/Pressure',
+                  'Warmth or Heat in the Body',
+                  'Shaky or Trembling',
+                  'Tension in Shoulders/Neck',
+                  'Shortness of Breath',
+                  'Fatigue/Heavy Limbs',
+                ].map((s) => (
+                  <MenuItem key={s} value={s}>
+                    <Checkbox checked={physicalSensations.includes(s)} />
+                    <ListItemText primary={s} />
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+
+            <FormControl fullWidth>
+              <InputLabel id="category-label">Category</InputLabel>
+              <Select
+                labelId="category-label"
+                value={category}
+                onChange={(e) => setCategory(e.target.value as string)}
+                label="Category"
+              >
+                {['work', 'relationship', 'self', 'family', 'health'].map((c) => (
+                  <MenuItem key={c} value={c}>
+                    {c}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+
+            {/* Tags */}
+            <Box>
+              <TextField
+                label="Add tag"
+                value={tagInput}
+                placeholder="type and press Enter"
+                onChange={(e) => setTagInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ',') {
+                    e.preventDefault()
+                    addTagsFromInput(tagInput)
+                  }
+                }}
+                fullWidth
+                size="small"
+              />
+              <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap', mt: 1 }}>
+                {tags.map((t) => (
+                  <Chip key={t} label={t} onDelete={() => removeTag(t)} size="small" />
+                ))}
+              </Box>
+            </Box>
+          </>
+        )}
+
+        {tab === 1 && (
+          <>
+            {/* Images */}
+            <Box>
+              <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+                <IconButton
+                  color="primary"
+                  component="label"
+                  aria-label="upload images"
+                  sx={{ width: 40, height: 40 }}
+                >
+                  <Add />
+                  <input
+                    hidden
+                    multiple
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => {
+                      const files = Array.from(e.target.files ?? [])
+                      setSelectedFiles((prev) => [...prev, ...files]) // append new files
+
+                      const newPreviews = files.map((f) => URL.createObjectURL(f))
+                      setPreviews((prev) => [...prev, ...newPreviews]) // append previews
+                    }}
+                  />
+                </IconButton>
+              </Box>
+
+              <Box sx={{ display: 'flex', gap: 1, mt: 1, flexWrap: 'wrap' }}>
+                {images.map((src) => (
+                  <Box key={src} sx={{ position: 'relative' }}>
+                    <IconButton
+                      size="small"
+                      onClick={() => setImages((prev) => prev.filter((p) => p !== src))}
+                      sx={{
+                        position: 'absolute',
+                        top: 4,
+                        right: 4,
+                        bgcolor: 'rgba(0,0,0,0.45)',
+                        color: 'common.white',
+                        '&:hover': { bgcolor: 'rgba(0,0,0,0.6)' },
+                        zIndex: 2,
+                      }}
+                      aria-label="remove image"
+                    >
+                      <Remove fontSize="small" />
+                    </IconButton>
+                    <img
+                      src={src}
+                      alt="uploaded"
+                      style={{
+                        width: 96,
+                        height: 64,
+                        objectFit: 'cover',
+                        borderRadius: 4,
+                        cursor: 'pointer',
+                      }}
+                      onClick={() => {
+                        setPreviewSrc(src)
+                        setPreviewOpen(true)
+                      }}
+                    />
+                  </Box>
+                ))}
+
+                {previews.map((p, idx) => (
+                  <Box key={p} sx={{ position: 'relative' }}>
+                    <IconButton
+                      size="small"
+                      onClick={() => {
+                        setPreviews((ps) => ps.filter((x) => x !== p))
+                        setSelectedFiles((sf) => sf.filter((_, i) => i !== idx))
+                      }}
+                      sx={{
+                        position: 'absolute',
+                        top: 4,
+                        right: 4,
+                        bgcolor: 'rgba(0,0,0,0.45)',
+                        color: 'common.white',
+                        '&:hover': { bgcolor: 'rgba(0,0,0,0.6)' },
+                        zIndex: 2,
+                      }}
+                      aria-label="remove preview"
+                    >
+                      <Remove fontSize="small" />
+                    </IconButton>
+                    <img
+                      src={p}
+                      alt={`preview-${idx}`}
+                      style={{
+                        width: 96,
+                        height: 64,
+                        objectFit: 'cover',
+                        borderRadius: 4,
+                        cursor: 'pointer',
+                      }}
+                      onClick={() => {
+                        setPreviewSrc(p)
+                        setPreviewOpen(true)
+                      }}
+                    />
+                  </Box>
+                ))}
+              </Box>
+            </Box>
+          </>
+        )}
 
         {error && <Box sx={{ color: 'error.main' }}>{error}</Box>}
-
-        <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
-          <Button variant="outlined" onClick={handleCancel} disabled={isSubmitting}>
-            Cancel
-          </Button>
-          <Button type="submit" variant="contained" disabled={isSubmitting}>
-            {isSubmitting ? 'Saving...' : initialEvent ? 'Save Changes' : 'Create Event'}
-          </Button>
-        </Box>
       </Stack>
     </form>
   )

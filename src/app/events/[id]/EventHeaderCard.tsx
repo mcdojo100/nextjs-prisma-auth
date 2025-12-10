@@ -11,6 +11,8 @@ import {
   Dialog,
   DialogTitle,
   DialogContent,
+  DialogActions,
+  Button,
 } from '@mui/material'
 import type { Event } from '@prisma/client'
 import EventForm from '../EventForm'
@@ -145,9 +147,17 @@ export default function EventHeaderCard({ event }: Props) {
         </CardContent>
       </CardActionArea>
 
-      <Dialog open={openEdit} onClose={() => setOpenEdit(false)} fullWidth maxWidth="sm">
+      <Dialog
+        open={openEdit}
+        onClose={() => setOpenEdit(false)}
+        fullWidth
+        maxWidth="sm"
+        PaperProps={{
+          sx: { height: '80vh', maxHeight: '80vh', display: 'flex', flexDirection: 'column' },
+        }}
+      >
         <DialogTitle>Edit Event</DialogTitle>
-        <DialogContent dividers>
+        <DialogContent dividers sx={{ overflowY: 'auto', flex: 1 }}>
           <EventForm
             event={event}
             onSuccess={() => {
@@ -157,6 +167,12 @@ export default function EventHeaderCard({ event }: Props) {
             onCancel={() => setOpenEdit(false)}
           />
         </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpenEdit(false)}>Cancel</Button>
+          <Button type="submit" form="event-form" variant="contained">
+            Save Changes
+          </Button>
+        </DialogActions>
       </Dialog>
     </Card>
   )
