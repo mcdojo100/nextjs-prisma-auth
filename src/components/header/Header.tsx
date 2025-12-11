@@ -61,9 +61,28 @@ const Header = ({ session }: { session: Session | null }) => {
   const handleAuthClick = () => {
     if (isLoggedIn) {
       signOut()
+      handleCloseMobileMenu()
     } else {
-      signIn('github')
+      // Open desktop auth menu when on larger screens; on mobile the menu shows explicit providers
+      handleOpenMobileMenu as unknown as () => void
     }
+  }
+
+  // Desktop auth menu (when not logged in show options)
+  const [authMenuAnchorEl, setAuthMenuAnchorEl] = useState<null | HTMLElement>(null)
+  const authMenuOpen = Boolean(authMenuAnchorEl)
+
+  const handleOpenAuthMenu = (event: React.MouseEvent<HTMLElement>) => {
+    setAuthMenuAnchorEl(event.currentTarget)
+  }
+
+  const handleCloseAuthMenu = () => {
+    setAuthMenuAnchorEl(null)
+  }
+
+  const handleSignInProvider = (provider: string) => {
+    signIn(provider)
+    handleCloseAuthMenu()
     handleCloseMobileMenu()
   }
 
@@ -136,15 +155,42 @@ const Header = ({ session }: { session: Session | null }) => {
           />
 
           <Box sx={{ flexGrow: 0, display: { xs: 'none', md: 'flex' } }}>
-            <Button
-              variant="contained"
-              color="secondary"
-              size="small"
-              onClick={handleAuthClick}
-              sx={{ textTransform: 'none', ml: 1, height: '30.75px' }}
-            >
-              {isLoggedIn ? 'Sign Out' : 'Sign In'}
-            </Button>
+            {isLoggedIn ? (
+              <Button
+                variant="contained"
+                color="secondary"
+                size="small"
+                onClick={() => signOut()}
+                sx={{ textTransform: 'none', ml: 1, height: '30.75px' }}
+              >
+                Sign Out
+              </Button>
+            ) : (
+              <>
+                <Button
+                  variant="contained"
+                  color="secondary"
+                  size="small"
+                  onClick={handleOpenAuthMenu}
+                  sx={{ textTransform: 'none', ml: 1, height: '30.75px' }}
+                >
+                  Sign In
+                </Button>
+                <Menu
+                  anchorEl={authMenuAnchorEl}
+                  open={authMenuOpen}
+                  onClose={handleCloseAuthMenu}
+                  keepMounted
+                >
+                  <MenuItem onClick={() => handleSignInProvider('github')}>
+                    Sign In with GitHub
+                  </MenuItem>
+                  <MenuItem onClick={() => handleSignInProvider('google')}>
+                    Sign In with Google
+                  </MenuItem>
+                </Menu>
+              </>
+            )}
           </Box>
 
           {/* Mobile: hamburger menu on the right */}
@@ -174,9 +220,25 @@ const Header = ({ session }: { session: Session | null }) => {
             {route.label}
           </MenuItem>
         ))}
-        <MenuItem onClick={handleAuthClick}>
-          {isLoggedIn ? 'Sign Out' : 'Sign In with GitHub'}
-        </MenuItem>
+        {isLoggedIn ? (
+          <MenuItem
+            onClick={() => {
+              signOut()
+              handleCloseMobileMenu()
+            }}
+          >
+            Sign Out
+          </MenuItem>
+        ) : (
+          [
+            <MenuItem key="github" onClick={() => handleSignInProvider('github')}>
+              Sign In with GitHub
+            </MenuItem>,
+            <MenuItem key="google" onClick={() => handleSignInProvider('google')}>
+              Sign In with Google
+            </MenuItem>,
+          ]
+        )}
       </Menu>
     </>
   )
