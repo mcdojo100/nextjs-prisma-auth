@@ -19,8 +19,6 @@ model User {
   accounts      Account[]
   sessions      Session[]
 
-  // Example app model relation
-  tasks         Task[]
   events        Event[]
 }
 
@@ -57,16 +55,6 @@ model VerificationToken {
   expires    DateTime
 
   @@unique([identifier, token])
-}
-
-// Example app model to prove DB works
-model Task {
-  id        String   @id @default(cuid())
-  title     String
-  done      Boolean  @default(false)
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  createdAt DateTime @default(now())
 }
 
 model Event {
