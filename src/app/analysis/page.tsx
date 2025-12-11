@@ -5,6 +5,7 @@ import React from 'react'
 import { Box, Typography } from '@mui/material'
 import IntensityOverTime from './IntensityOverTime'
 import ImportanceOverTime from './ImportanceOverTime'
+import EmotionFrequencyChart from './EmotionFrequencyChart'
 
 export default function AnalysisPage() {
   return (
@@ -15,6 +16,7 @@ export default function AnalysisPage() {
 
       <IntensityOverTime />
       <ImportanceOverTime />
+      <EmotionFrequencyChart />
     </Box>
   )
 }
