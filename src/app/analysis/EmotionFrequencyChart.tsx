@@ -75,7 +75,15 @@ export default function EmotionFrequencyChart() {
       </Box>
 
       {loading ? (
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', p: 2 }}>
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            p: 2,
+            height: 320,
+          }}
+        >
           <CircularProgress />
         </Box>
       ) : error ? (

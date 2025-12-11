@@ -43,8 +43,21 @@ export default function IntensityOverTime() {
 
   if (loading)
     return (
-      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', p: 2 }}>
-        <CircularProgress />
+      <Box sx={{ pt: 2, pb: 2, px: 0 }}>
+        <Typography variant="h6" sx={{ mb: 1 }}>
+          Intensity Over Time
+        </Typography>
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            p: 2,
+            height: 300,
+          }}
+        >
+          <CircularProgress />
+        </Box>
       </Box>
     )
 
