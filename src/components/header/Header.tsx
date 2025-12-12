@@ -23,6 +23,7 @@ import Image from 'next/image'
 const routes = [
   { label: 'Home', path: '/' },
   { label: 'Events', path: '/events' },
+  { label: 'Activity', path: '/activity' }, // ✅ NEW
   { label: 'Analysis', path: '/analysis' },
 ]
 

@@ -40,6 +40,7 @@ type EventFormProps = {
   onCancel?: () => void
   parentEventId?: string | null
   formId?: string
+  initialOccurredAt?: Date | null
 }
 
 export default function EventForm({
@@ -48,6 +49,7 @@ export default function EventForm({
   onCancel,
   parentEventId,
   formId = 'event-form',
+  initialOccurredAt = null,
 }: EventFormProps) {
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
@@ -136,10 +138,11 @@ export default function EventForm({
       setPerception('Neutral')
 
       // ✅ default occurredAt to now for new events
-      setOccurredDate(dayjs())
-      setOccurredTime(dayjs())
+      const base = initialOccurredAt ? dayjs(initialOccurredAt) : dayjs()
+      setOccurredDate(base)
+      setOccurredTime(base)
     }
-  }, [initialEvent])
+  }, [initialEvent, initialOccurredAt])
 
   // Combine date + time into a single Date for Prisma
   const occurredAt: Date = useMemo(() => {
@@ -205,7 +208,8 @@ export default function EventForm({
         images: imagesToSend,
 
         // ✅ add occurredAt to both create + update
-        occurredAt,
+
+        occurredAt: occurredAt.toISOString(), // ✅ always ISO
       }
 
       if (initialEvent?.id) {

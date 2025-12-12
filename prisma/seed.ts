@@ -25,7 +25,7 @@ function randomSubset<T>(arr: T[], maxCount: number): T[] {
   return result
 }
 
-// Spread events over last 365 days
+// Pick a random date/time between now and 365 days ago
 function randomDateWithinLastYear() {
   const now = new Date()
   const daysAgo = randomInt(0, 364)
@@ -109,7 +109,7 @@ async function createUserWithEventsAndLogics(user: {
   type MainMeta = {
     id: string
     title: string
-    createdAt: Date
+    occurredAt: Date
     category: string
   }
 
@@ -117,7 +117,12 @@ async function createUserWithEventsAndLogics(user: {
 
   // ----- main events -----
   for (let i = 0; i < MAIN_EVENTS_PER_USER; i++) {
-    const createdAt = randomDateWithinLastYear()
+    const occurredAt = randomDateWithinLastYear()
+
+    // Make createdAt realistic: shortly after occurredAt (0-48h)
+    const createdAt = new Date(occurredAt)
+    createdAt.setHours(createdAt.getHours() + randomInt(0, 48))
+
     const category = randomItem(CATEGORIES)
     const perception = randomItem(PERCEPTIONS)
 
@@ -142,7 +147,7 @@ async function createUserWithEventsAndLogics(user: {
 
     const id = makeEventId(user.id, 'main', i)
 
-    mainEventsMeta.push({ id, title, createdAt, category })
+    mainEventsMeta.push({ id, title, occurredAt, category })
 
     eventsData.push({
       id,
@@ -158,6 +163,11 @@ async function createUserWithEventsAndLogics(user: {
       category,
       verificationStatus: randomItem(['Pending', 'Verified']),
       userId: user.id,
+
+      // ✅ timeline/calendar uses this
+      occurredAt,
+
+      // optional: keep createdAt realistic
       createdAt,
       // updatedAt is @updatedAt, let DB handle
     })
@@ -175,8 +185,13 @@ async function createUserWithEventsAndLogics(user: {
       const subId = makeEventId(user.id, 'sub', i, j)
       subEventIds.push(subId)
 
-      const subCreatedAt = new Date(main.createdAt)
-      subCreatedAt.setHours(subCreatedAt.getHours() + randomInt(0, 12))
+      // base sub-event occurredAt off main occurredAt (+0..12h)
+      const subOccurredAt = new Date(main.occurredAt)
+      subOccurredAt.setHours(subOccurredAt.getHours() + randomInt(0, 12))
+
+      // createdAt shortly after occurredAt (+0..24h)
+      const subCreatedAt = new Date(subOccurredAt)
+      subCreatedAt.setHours(subCreatedAt.getHours() + randomInt(0, 24))
 
       eventsData.push({
         id: subId,
@@ -193,6 +208,11 @@ async function createUserWithEventsAndLogics(user: {
         verificationStatus: randomItem(['Pending', 'Verified']),
         userId: user.id,
         parentEventId: main.id,
+
+        // ✅ timeline/calendar uses this
+        occurredAt: subOccurredAt,
+
+        // optional: keep createdAt realistic
         createdAt: subCreatedAt,
       })
     }
@@ -200,7 +220,7 @@ async function createUserWithEventsAndLogics(user: {
     // Logic notes for main event
     const mainLogicCount = randomInt(LOGIC_MAIN_MIN, LOGIC_MAIN_MAX)
     for (let k = 0; k < mainLogicCount; k++) {
-      const logicCreatedAt = new Date(main.createdAt)
+      const logicCreatedAt = new Date(main.occurredAt)
       logicCreatedAt.setHours(logicCreatedAt.getHours() + randomInt(0, 24))
 
       logicsData.push({
@@ -224,12 +244,14 @@ async function createUserWithEventsAndLogics(user: {
     const extraSubCount = randomInt(3, Math.min(7, subEventIds.length))
     for (let s = 0; s < extraSubCount; s++) {
       const subId = subEventIds[s]
-      const subCreatedAt = new Date(main.createdAt)
-      subCreatedAt.setHours(subCreatedAt.getHours() + randomInt(0, 18))
+
+      // approximate sub occurredAt time for logic timing
+      const base = new Date(main.occurredAt)
+      base.setHours(base.getHours() + randomInt(0, 18))
 
       const subLogicCount = randomInt(LOGIC_SUB_MIN, LOGIC_SUB_MAX)
       for (let n = 0; n < subLogicCount; n++) {
-        const logicCreatedAt = new Date(subCreatedAt)
+        const logicCreatedAt = new Date(base)
         logicCreatedAt.setHours(logicCreatedAt.getHours() + randomInt(0, 12))
 
         logicsData.push({
