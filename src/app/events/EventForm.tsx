@@ -2,7 +2,6 @@
 
 import {
   Box,
-  Button,
   Tabs,
   Tab,
   Slider,
@@ -79,17 +78,20 @@ export default function EventForm({
 
   useEffect(() => {
     if (initialEvent) {
-      setTitle(initialEvent.title)
-      setDescription(initialEvent.description)
-      setIntensity(initialEvent.intensity)
-      setImportance(initialEvent.importance)
-      setEmotions(initialEvent.emotions ?? [])
-      setPhysicalSensations(initialEvent.physicalSensations ?? [])
+      setTitle(initialEvent.title ?? '')
+      setDescription(initialEvent.description ?? '')
+
+      // ✅ IMPORTANT: never set Slider state to undefined/null
+      setIntensity((initialEvent as any).intensity ?? 5)
+      setImportance((initialEvent as any).importance ?? 5)
+
+      setEmotions((initialEvent as any).emotions ?? [])
+      setPhysicalSensations((initialEvent as any).physicalSensations ?? [])
 
       // ✅ load occurredAt if present, fallback to createdAt
       const occurred = (initialEvent as any).occurredAt
         ? dayjs((initialEvent as any).occurredAt)
-        : dayjs(initialEvent.createdAt)
+        : dayjs((initialEvent as any).createdAt)
 
       setOccurredDate(occurred)
       setOccurredTime(occurred)
@@ -119,8 +121,8 @@ export default function EventForm({
         return found ?? 'Pending'
       }
 
-      setVerificationStatus(mapStatus(initialEvent.verificationStatus))
-      setCategory(initialEvent.category ?? '')
+      setVerificationStatus(mapStatus((initialEvent as any).verificationStatus))
+      setCategory((initialEvent as any).category ?? '')
       setTags((initialEvent as any).tags ?? [])
       setImages((initialEvent as any).images ?? [])
       setPerception((initialEvent as any).perception ?? 'Neutral')
@@ -192,8 +194,6 @@ export default function EventForm({
 
       const imagesToSend = Array.from(new Set([...(images ?? []), ...uploadedUrls]))
 
-      let res: Response
-
       const payload = {
         title,
         description,
@@ -206,14 +206,12 @@ export default function EventForm({
         verificationStatus,
         tags,
         images: imagesToSend,
-
-        // ✅ add occurredAt to both create + update
-
-        occurredAt: occurredAt.toISOString(), // ✅ always ISO
+        occurredAt: occurredAt.toISOString(),
       }
 
-      if (initialEvent?.id) {
-        res = await fetch(`/api/events/${initialEvent.id}`, {
+      let res: Response
+      if ((initialEvent as any)?.id) {
+        res = await fetch(`/api/events/${(initialEvent as any).id}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload),

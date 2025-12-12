@@ -10,6 +10,13 @@ import {
   ToggleButton,
   ToggleButtonGroup,
   Typography,
+  Card,
+  CardActionArea,
+  CardContent,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
 } from '@mui/material'
 import AddIcon from '@mui/icons-material/Add'
 import dayjs from 'dayjs'
@@ -43,6 +50,10 @@ export default function ActivityClient({ initialEvents }: Props) {
   // Quick add modal state
   const [addOpen, setAddOpen] = useState(false)
   const [addPrefillDate, setAddPrefillDate] = useState<Date | null>(null)
+
+  // Edit dialog state for clicking existing events
+  const [editOpen, setEditOpen] = useState(false)
+  const [editEvent, setEditEvent] = useState<LiteEvent | null>(null)
 
   // Calendar state
   const [month, setMonth] = useState(dayjs()) // current month
@@ -104,6 +115,11 @@ export default function ActivityClient({ initialEvents }: Props) {
     setAddOpen(true)
   }
 
+  function openEdit(e: LiteEvent) {
+    setEditEvent(e)
+    setEditOpen(true)
+  }
+
   return (
     <Box>
       {/* Top controls */}
@@ -129,6 +145,7 @@ export default function ActivityClient({ initialEvents }: Props) {
             // prefill date at noon local for stability
             openAddForDate(dayjs(dayKey).hour(12).minute(0).second(0).toDate())
           }}
+          onOpenEdit={openEdit}
         />
       ) : (
         <CalendarView
@@ -172,25 +189,21 @@ export default function ActivityClient({ initialEvents }: Props) {
 
         <Stack spacing={1}>
           {selectedDayEvents.map((e) => (
-            <Box
-              key={e.id}
-              sx={{
-                border: '1px solid',
-                borderColor: 'divider',
-                borderRadius: 2,
-                p: 1.25,
-              }}
-            >
-              <Stack direction="row" justifyContent="space-between" alignItems="center">
-                <Typography fontWeight={600}>{e.title}</Typography>
-                <Chip size="small" label={dayjs(e.occurredAt).format('h:mm A')} />
-              </Stack>
-              {e.description ? (
-                <Typography variant="body2" sx={{ mt: 0.5, opacity: 0.8 }}>
-                  {e.description}
-                </Typography>
-              ) : null}
-            </Box>
+            <Card key={e.id} sx={{ width: '100%', position: 'relative', borderColor: 'divider' }}>
+              <CardActionArea component="div" onClick={() => openEdit(e)}>
+                <CardContent sx={{ pr: 1 }}>
+                  <Stack direction="row" justifyContent="space-between" alignItems="center">
+                    <Typography fontWeight={600}>{e.title}</Typography>
+                    <Chip size="small" label={dayjs(e.occurredAt).format('h:mm A')} />
+                  </Stack>
+                  {e.description ? (
+                    <Typography variant="body2" sx={{ mt: 0.5, opacity: 0.8 }}>
+                      {e.description}
+                    </Typography>
+                  ) : null}
+                </CardContent>
+              </CardActionArea>
+            </Card>
           ))}
 
           {selectedDayEvents.length === 0 ? (
@@ -201,10 +214,7 @@ export default function ActivityClient({ initialEvents }: Props) {
         </Stack>
       </Drawer>
 
-      {/* Add Event dialog */}
-      {/* Reuse your existing modal pattern – simplest: render EventForm inside a MUI Dialog in the parent that calls setAddOpen(false) on success/cancel.
-          If your EventForm already lives inside a Dialog elsewhere, tell me how you’re doing it and I’ll match it exactly.
-      */}
+      {/* Add Event (uses your existing EventForm UX) */}
       {addOpen ? (
         <EventForm
           initialOccurredAt={addPrefillDate}
@@ -212,6 +222,33 @@ export default function ActivityClient({ initialEvents }: Props) {
           onCancel={() => setAddOpen(false)}
         />
       ) : null}
+
+      {/* Edit existing event dialog */}
+      <Dialog
+        open={editOpen}
+        onClose={() => setEditOpen(false)}
+        fullWidth
+        maxWidth="sm"
+        PaperProps={{
+          sx: { height: '80vh', maxHeight: '80vh', display: 'flex', flexDirection: 'column' },
+        }}
+      >
+        <DialogTitle>Edit Event</DialogTitle>
+        <DialogContent dividers sx={{ overflowY: 'auto', flex: 1 }}>
+          <EventForm
+            // EventForm expects a fuller Event shape; pass as any to allow the subset
+            event={editEvent as any}
+            onSuccess={() => setEditOpen(false)}
+            onCancel={() => setEditOpen(false)}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setEditOpen(false)}>Cancel</Button>
+          <Button type="submit" form="event-form" variant="contained">
+            Save Changes
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   )
 }
@@ -219,9 +256,11 @@ export default function ActivityClient({ initialEvents }: Props) {
 function TimelineView({
   groupedByDay,
   onAddForDay,
+  onOpenEdit,
 }: {
   groupedByDay: [string, LiteEvent[]][]
   onAddForDay: (dayKey: string) => void
+  onOpenEdit: (e: LiteEvent) => void
 }) {
   return (
     <Stack spacing={2}>
@@ -250,25 +289,21 @@ function TimelineView({
 
           <Stack spacing={1}>
             {items.map((e) => (
-              <Box
-                key={e.id}
-                sx={{
-                  border: '1px solid',
-                  borderColor: 'divider',
-                  borderRadius: 2,
-                  p: 1.25,
-                }}
-              >
-                <Stack direction="row" justifyContent="space-between" alignItems="center">
-                  <Typography fontWeight={600}>{e.title}</Typography>
-                  <Chip size="small" label={dayjs(e.occurredAt).format('h:mm A')} />
-                </Stack>
-                {e.description ? (
-                  <Typography variant="body2" sx={{ mt: 0.5, opacity: 0.8 }}>
-                    {e.description}
-                  </Typography>
-                ) : null}
-              </Box>
+              <Card key={e.id} sx={{ width: '100%', position: 'relative', borderColor: 'divider' }}>
+                <CardActionArea component="div" onClick={() => onOpenEdit(e)}>
+                  <CardContent sx={{ pr: 1 }}>
+                    <Stack direction="row" justifyContent="space-between" alignItems="center">
+                      <Typography fontWeight={600}>{e.title}</Typography>
+                      <Chip size="small" label={dayjs(e.occurredAt).format('h:mm A')} />
+                    </Stack>
+                    {e.description ? (
+                      <Typography variant="body2" sx={{ mt: 0.5, opacity: 0.8 }}>
+                        {e.description}
+                      </Typography>
+                    ) : null}
+                  </CardContent>
+                </CardActionArea>
+              </Card>
             ))}
           </Stack>
         </Box>
