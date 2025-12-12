@@ -10,16 +10,17 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  // Fetch events for the current user (createdAt, importance, intensity)
+  // Fetch events for the current user (occurredAt, importance, intensity)
   const events = await db.event.findMany({
     where: { userId: session.user.id },
-    select: { createdAt: true, importance: true, intensity: true },
+    select: { occurredAt: true, importance: true, intensity: true },
   })
 
   // Aggregate by day (YYYY-MM-DD)
   const map = new Map<string, { sumImportance: number; sumIntensity: number; count: number }>()
   events.forEach((e) => {
-    const day = e.createdAt.toISOString().slice(0, 10)
+    // Group by the actual occurred date (YYYY-MM-DD)
+    const day = (e as any).occurredAt.toISOString().slice(0, 10)
     const cur = map.get(day) ?? { sumImportance: 0, sumIntensity: 0, count: 0 }
     cur.sumImportance += e.importance
     cur.sumIntensity += e.intensity

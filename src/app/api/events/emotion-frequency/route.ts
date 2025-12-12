@@ -28,16 +28,17 @@ export async function GET(req: Request) {
   const range = url.searchParams.get('range') ?? '30'
   const cutoff = parseRange(range)
 
-  // fetch events for user, with createdAt and emotions array
+  // fetch events for user, with occurredAt and emotions array
   const events = await db.event.findMany({
     where: { userId: session.user.id },
-    select: { createdAt: true, emotions: true },
+    select: { occurredAt: true, emotions: true },
   })
 
   const map = new Map<string, number>()
 
   for (const e of events) {
-    if (cutoff && e.createdAt < cutoff) continue
+    // use occurredAt (the actual event time) for range filtering
+    if (cutoff && (e as any).occurredAt < cutoff) continue
     const emotions = (e as any).emotions
     if (!Array.isArray(emotions)) continue
     for (const raw of emotions) {
