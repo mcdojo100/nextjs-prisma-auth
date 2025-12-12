@@ -24,15 +24,9 @@ import { useMemo, useState } from 'react'
 
 // You can reuse your existing EventForm in a Dialog
 import EventForm from '../events/EventForm' // adjust path to your actual EventForm
-
-type LiteEvent = {
-  id: string
-  title: string
-  description: string
-  occurredAt: Date | string
-  intensity: number
-  parentEventId: string | null
-}
+import CalendarView from './CalendarView'
+import TimelineView, { LiteEvent } from './TimelineView'
+import CloseIcon from '@mui/icons-material/Close'
 
 type Props = {
   initialEvents: LiteEvent[]
@@ -174,17 +168,23 @@ export default function ActivityClient({ initialEvents }: Props) {
             {selectedDayKey ? dayjs(selectedDayKey).format('ddd, MMM D') : 'Day'}
           </Typography>
 
-          <Button
-            size="small"
-            variant="contained"
-            startIcon={<AddIcon />}
-            onClick={() => {
-              if (!selectedDayKey) return
-              openAddForDate(dayjs(selectedDayKey).hour(12).minute(0).second(0).toDate())
-            }}
-          >
-            Add
-          </Button>
+          <Stack direction="row" spacing={1} alignItems="center">
+            <Button
+              size="small"
+              variant="contained"
+              startIcon={<AddIcon />}
+              onClick={() => {
+                if (!selectedDayKey) return
+                openAddForDate(dayjs(selectedDayKey).hour(12).minute(0).second(0).toDate())
+              }}
+            >
+              Add
+            </Button>
+
+            <IconButton aria-label="Close" onClick={() => setDayDrawerOpen(false)}>
+              <CloseIcon />
+            </IconButton>
+          </Stack>
         </Stack>
 
         <Stack spacing={1}>
@@ -266,165 +266,6 @@ export default function ActivityClient({ initialEvents }: Props) {
           </Button>
         </DialogActions>
       </Dialog>
-    </Box>
-  )
-}
-
-function TimelineView({
-  groupedByDay,
-  onAddForDay,
-  onOpenEdit,
-}: {
-  groupedByDay: [string, LiteEvent[]][]
-  onAddForDay: (dayKey: string) => void
-  onOpenEdit: (e: LiteEvent) => void
-}) {
-  return (
-    <Stack spacing={2}>
-      {groupedByDay.map(([dayKey, items]) => (
-        <Box key={dayKey}>
-          <Stack
-            direction="row"
-            justifyContent="space-between"
-            alignItems="center"
-            sx={{
-              mb: 1,
-              position: 'sticky',
-              top: 0,
-              bgcolor: 'background.paper',
-              zIndex: 1,
-              py: 1,
-            }}
-          >
-            <Typography variant="subtitle1" fontWeight={700}>
-              {dayjs(dayKey).format('dddd, MMM D')}
-            </Typography>
-            <Button size="small" startIcon={<AddIcon />} onClick={() => onAddForDay(dayKey)}>
-              Add
-            </Button>
-          </Stack>
-
-          <Stack spacing={1}>
-            {items.map((e) => (
-              <Card key={e.id} sx={{ width: '100%', position: 'relative', borderColor: 'divider' }}>
-                <CardActionArea component="div" onClick={() => onOpenEdit(e)}>
-                  <CardContent sx={{ pr: 1 }}>
-                    <Stack direction="row" justifyContent="space-between" alignItems="center">
-                      <Typography fontWeight={600}>{e.title}</Typography>
-                      <Chip size="small" label={dayjs(e.occurredAt).format('h:mm A')} />
-                    </Stack>
-                    {e.description ? (
-                      <Typography variant="body2" sx={{ mt: 0.5, opacity: 0.8 }}>
-                        {e.description}
-                      </Typography>
-                    ) : null}
-                  </CardContent>
-                </CardActionArea>
-              </Card>
-            ))}
-          </Stack>
-        </Box>
-      ))}
-    </Stack>
-  )
-}
-
-function CalendarView({
-  month,
-  onMonthChange,
-  counts,
-  onPickDay,
-  onAddForDay,
-}: {
-  month: dayjs.Dayjs
-  onMonthChange: (d: dayjs.Dayjs) => void
-  counts: Map<string, number>
-  onPickDay: (dayKey: string) => void
-  onAddForDay: (dayKey: string) => void
-}) {
-  const start = month.startOf('month')
-  const firstGridDay = start.startOf('week') // Sunday-start; adjust if you want Monday
-  const days = Array.from({ length: 42 }, (_, i) => firstGridDay.add(i, 'day'))
-
-  function intensityLevel(n: number) {
-    if (n <= 0) return 0
-    if (n <= 2) return 1
-    if (n <= 5) return 2
-    if (n <= 9) return 3
-    return 4
-  }
-
-  // simple opacity scale (no hard-coded colors)
-  const opacityByLevel = [0, 0.08, 0.14, 0.2, 0.28]
-
-  return (
-    <Box>
-      <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1 }}>
-        <Button onClick={() => onMonthChange(month.subtract(1, 'month'))}>Prev</Button>
-        <Typography variant="h6">{month.format('MMMM YYYY')}</Typography>
-        <Button onClick={() => onMonthChange(month.add(1, 'month'))}>Next</Button>
-      </Stack>
-
-      <Box
-        sx={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(7, 1fr)',
-          gap: 1,
-        }}
-      >
-        {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((d) => (
-          <Typography key={d} variant="caption" sx={{ opacity: 0.7, textAlign: 'center' }}>
-            {d}
-          </Typography>
-        ))}
-
-        {days.map((d) => {
-          const dayKey = toDayKey(d)
-          const n = counts.get(dayKey) ?? 0
-          const level = intensityLevel(n)
-          const inMonth = d.month() === month.month()
-
-          return (
-            <Box
-              key={dayKey}
-              onClick={() => onPickDay(dayKey)}
-              sx={{
-                cursor: 'pointer',
-                border: '1px solid',
-                borderColor: 'divider',
-                borderRadius: 2,
-                minHeight: 84,
-                p: 1,
-                opacity: inMonth ? 1 : 0.5,
-                bgcolor: `rgba(0,0,0,${opacityByLevel[level]})`,
-                position: 'relative',
-              }}
-            >
-              <Stack direction="row" justifyContent="space-between" alignItems="center">
-                <Typography variant="body2" fontWeight={700}>
-                  {d.date()}
-                </Typography>
-
-                <IconButton
-                  size="small"
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    onAddForDay(dayKey)
-                  }}
-                >
-                  <AddIcon fontSize="small" />
-                </IconButton>
-              </Stack>
-
-              {n > 0 ? (
-                <Typography variant="caption" sx={{ opacity: 0.75 }}>
-                  {n} event{n === 1 ? '' : 's'}
-                </Typography>
-              ) : null}
-            </Box>
-          )
-        })}
-      </Box>
     </Box>
   )
 }
