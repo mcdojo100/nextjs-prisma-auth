@@ -35,6 +35,7 @@ export default async function EventsPage() {
       parentEventId: true,
       perception: true,
       occurredAt: true,
+      isDemo: true,
     },
   })
 
