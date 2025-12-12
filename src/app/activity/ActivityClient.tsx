@@ -19,14 +19,13 @@ import {
   DialogActions,
 } from '@mui/material'
 import AddIcon from '@mui/icons-material/Add'
+import CloseIcon from '@mui/icons-material/Close'
 import dayjs from 'dayjs'
 import { useMemo, useState } from 'react'
 
-// You can reuse your existing EventForm in a Dialog
-import EventForm from '../events/EventForm' // adjust path to your actual EventForm
+import EventForm from '../events/EventForm'
 import CalendarView from './CalendarView'
-import TimelineView, { LiteEvent } from './TimelineView'
-import CloseIcon from '@mui/icons-material/Close'
+import TimelineView, { LiteEvent, TimelineFilter } from './TimelineView'
 
 type Props = {
   initialEvents: LiteEvent[]
@@ -50,36 +49,43 @@ export default function ActivityClient({ initialEvents }: Props) {
   const [editEvent, setEditEvent] = useState<LiteEvent | null>(null)
 
   // Calendar state
-  const [month, setMonth] = useState(dayjs()) // current month
+  const [month, setMonth] = useState(dayjs())
   const [dayDrawerOpen, setDayDrawerOpen] = useState(false)
   const [selectedDayKey, setSelectedDayKey] = useState<string | null>(null)
 
+  // Timeline filter state
+  const [timelineFilter, setTimelineFilter] = useState<TimelineFilter>('all')
+
   const events = useMemo(() => {
-    // normalize occurredAt to Date objects
     return initialEvents.map((e) => ({
       ...e,
       occurredAt: typeof e.occurredAt === 'string' ? new Date(e.occurredAt) : e.occurredAt,
     }))
   }, [initialEvents])
 
-  // --- Timeline grouping ---
+  // --- Timeline grouping (with filter applied) ---
   const groupedByDay = useMemo(() => {
+    const filtered =
+      timelineFilter === 'all'
+        ? events
+        : timelineFilter === 'parents'
+          ? events.filter((e) => !e.parentEventId)
+          : events.filter((e) => !!e.parentEventId)
+
     const map = new Map<string, LiteEvent[]>()
-    for (const e of events) {
+    for (const e of filtered) {
       const key = dayjs(e.occurredAt).format('YYYY-MM-DD')
       if (!map.has(key)) map.set(key, [])
       map.get(key)!.push(e)
     }
 
-    // ensure each group is time-sorted (desc)
     for (const [k, arr] of map) {
       arr.sort((a, b) => +new Date(b.occurredAt as any) - +new Date(a.occurredAt as any))
       map.set(k, arr)
     }
 
-    // newest day first
     return Array.from(map.entries()).sort((a, b) => (a[0] < b[0] ? 1 : -1))
-  }, [events])
+  }, [events, timelineFilter])
 
   // --- Calendar intensity counts for the displayed month ---
   const monthCounts = useMemo(() => {
@@ -135,10 +141,11 @@ export default function ActivityClient({ initialEvents }: Props) {
       {view === 'timeline' ? (
         <TimelineView
           groupedByDay={groupedByDay}
-          onAddForDay={(dayKey) => {
-            // prefill date at noon local for stability
+          filter={timelineFilter}
+          onChangeFilter={setTimelineFilter}
+          onAddForDay={(dayKey) =>
             openAddForDate(dayjs(dayKey).hour(12).minute(0).second(0).toDate())
-          }}
+          }
           onOpenEdit={openEdit}
         />
       ) : (
@@ -146,6 +153,7 @@ export default function ActivityClient({ initialEvents }: Props) {
           month={month}
           onMonthChange={setMonth}
           counts={monthCounts}
+          selectedDayKey={selectedDayKey}
           onPickDay={(dayKey) => {
             setSelectedDayKey(dayKey)
             setDayDrawerOpen(true)
@@ -253,7 +261,6 @@ export default function ActivityClient({ initialEvents }: Props) {
         <DialogTitle>Edit Event</DialogTitle>
         <DialogContent dividers sx={{ overflowY: 'auto', flex: 1 }}>
           <EventForm
-            // EventForm expects a fuller Event shape; pass as any to allow the subset
             event={editEvent as any}
             onSuccess={() => setEditOpen(false)}
             onCancel={() => setEditOpen(false)}

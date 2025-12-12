@@ -9,6 +9,8 @@ import {
   Chip,
   Stack,
   Typography,
+  ToggleButton,
+  ToggleButtonGroup,
 } from '@mui/material'
 import AddIcon from '@mui/icons-material/Add'
 import dayjs from 'dayjs'
@@ -22,15 +24,49 @@ export type LiteEvent = {
   parentEventId: string | null
 }
 
+export type TimelineFilter = 'all' | 'parents' | 'subs'
+
 type Props = {
   groupedByDay: [string, LiteEvent[]][]
   onAddForDay: (dayKey: string) => void
   onOpenEdit: (e: LiteEvent) => void
+
+  // ✅ quick filters
+  filter: TimelineFilter
+  onChangeFilter: (v: TimelineFilter) => void
 }
 
-export default function TimelineView({ groupedByDay, onAddForDay, onOpenEdit }: Props) {
+export default function TimelineView({
+  groupedByDay,
+  onAddForDay,
+  onOpenEdit,
+  filter,
+  onChangeFilter,
+}: Props) {
   return (
     <Stack spacing={2}>
+      {/* Quick filters */}
+      <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ gap: 1 }}>
+        <ToggleButtonGroup
+          exclusive
+          size="small"
+          value={filter}
+          onChange={(_, v) => v && onChangeFilter(v)}
+        >
+          <ToggleButton value="all">All</ToggleButton>
+          <ToggleButton value="parents">Parents</ToggleButton>
+          <ToggleButton value="subs">Sub-events</ToggleButton>
+        </ToggleButtonGroup>
+
+        <Typography variant="caption" sx={{ opacity: 0.7 }}>
+          {filter === 'all'
+            ? 'Showing all events'
+            : filter === 'parents'
+              ? 'Showing parent events'
+              : 'Showing sub-events'}
+        </Typography>
+      </Stack>
+
       {groupedByDay.map(([dayKey, items]) => (
         <Box key={dayKey}>
           <Stack
@@ -77,6 +113,12 @@ export default function TimelineView({ groupedByDay, onAddForDay, onOpenEdit }: 
           </Stack>
         </Box>
       ))}
+
+      {groupedByDay.length === 0 ? (
+        <Typography variant="body2" sx={{ opacity: 0.7 }}>
+          No events match this filter.
+        </Typography>
+      ) : null}
     </Stack>
   )
 }

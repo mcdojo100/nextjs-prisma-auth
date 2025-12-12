@@ -10,11 +10,15 @@ type Props = {
   counts: Map<string, number>
   onPickDay: (dayKey: string) => void
   onAddForDay: (dayKey: string) => void
+  selectedDayKey?: string | null
 }
 
 function toDayKey(d: dayjs.Dayjs) {
   return d.format('YYYY-MM-DD')
 }
+
+// Keep this at module scope so it doesn't re-create every render
+const todayKey = dayjs().format('YYYY-MM-DD')
 
 export default function CalendarView({
   month,
@@ -22,6 +26,7 @@ export default function CalendarView({
   counts,
   onPickDay,
   onAddForDay,
+  selectedDayKey,
 }: Props) {
   const start = month.startOf('month')
   const firstGridDay = start.startOf('week') // Sunday-start; adjust if you want Monday
@@ -92,9 +97,9 @@ export default function CalendarView({
           }}
         >
           {/* Weekday headers */}
-          {weekdays.map((d) => (
+          {weekdays.map((wd) => (
             <Typography
-              key={d.full}
+              key={wd.full}
               variant="caption"
               sx={{
                 opacity: 0.7,
@@ -104,10 +109,10 @@ export default function CalendarView({
               }}
             >
               <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>
-                {d.full}
+                {wd.full}
               </Box>
               <Box component="span" sx={{ display: { xs: 'inline', sm: 'none' } }}>
-                {d.short}
+                {wd.short}
               </Box>
             </Typography>
           ))}
@@ -115,6 +120,8 @@ export default function CalendarView({
           {/* Day cells */}
           {days.map((d) => {
             const dayKey = toDayKey(d)
+            const isToday = dayKey === todayKey
+
             const n = counts.get(dayKey) ?? 0
             const level = intensityLevel(n)
             const inMonth = d.month() === month.month()
@@ -126,7 +133,7 @@ export default function CalendarView({
                 sx={{
                   cursor: 'pointer',
                   border: '1px solid',
-                  borderColor: 'divider',
+                  borderColor: isToday ? 'primary.main' : 'divider',
                   borderRadius: 2,
                   minHeight: { xs: 58, sm: 84 },
                   p: { xs: 0.5, sm: 1 },
@@ -134,12 +141,18 @@ export default function CalendarView({
                   bgcolor: `rgba(0,0,0,${opacityByLevel[level]})`,
                   position: 'relative',
                   overflow: 'hidden',
+
+                  // ✨ Today emphasis
+                  boxShadow: isToday
+                    ? '0 0 0 1px rgba(147,51,234,0.6), 0 0 12px rgba(147,51,234,0.35)'
+                    : 'none',
                 }}
               >
                 <Stack direction="row" justifyContent="space-between" alignItems="center">
                   <Typography
                     variant="body2"
-                    fontWeight={700}
+                    fontWeight={isToday ? 800 : 700}
+                    color={isToday ? 'primary.main' : 'inherit'}
                     sx={{
                       fontSize: { xs: '0.8rem', sm: '0.9rem' },
                       lineHeight: 1.1,
