@@ -73,6 +73,7 @@ model Event {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
     occurredAt  DateTime @default(now())
+     isDemo    Boolean  @default(false)
 
   // Relation to User
   userId String
@@ -98,7 +99,7 @@ model Logic {
   actions     String    // paragraph
     perception String @default("Neutral")
     images String[] @default([])
-
+   isDemo    Boolean  @default(false)
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
