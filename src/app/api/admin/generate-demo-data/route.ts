@@ -26,6 +26,43 @@ function chunk<T>(arr: T[], size: number) {
   return out
 }
 
+// random subset helper (0..maxCount items)
+function randomSubset<T>(arr: T[], maxCount: number) {
+  const copy = [...arr]
+  const count = randomInt(0, Math.min(maxCount, copy.length))
+  const result: T[] = []
+  for (let i = 0; i < count; i++) {
+    const idx = randomInt(0, copy.length - 1)
+    result.push(copy[idx])
+    copy.splice(idx, 1)
+  }
+  return result
+}
+
+const EMOTIONS = [
+  'anger',
+  'sadness',
+  'anxiety',
+  'numbness',
+  'confusion',
+  'shame',
+  'hope',
+  'calm',
+] as const
+
+const PHYSICAL_SENSATIONS = [
+  'Tight Chest',
+  'Butterflies/Stomach Flutters',
+  'Headache/Pressure',
+  'Warmth or Heat in the Body',
+  'Shaky or Trembling',
+  'Tension in Shoulders/Neck',
+  'Shortness of Breath',
+  'Fatigue/Heavy Limbs',
+] as const
+
+const CATEGORIES = ['work', 'relationship', 'self', 'family', 'health'] as const
+
 export async function POST() {
   const admin = await requireAdmin()
   if (!admin.ok || !admin.email) {
@@ -43,10 +80,6 @@ export async function POST() {
       { status: 400 },
     )
   }
-
-  // If you want to prevent repeated generation, uncomment this:
-  // const already = await prisma.event.count({ where: { userId: user.id, isDemo: true } });
-  // if (already > 0) return NextResponse.json({ ok: true, message: "Demo data already exists", demoEvents: already });
 
   const batchTag = `demo-batch:${crypto.randomUUID()}`
   const parentTag = 'demo-parent'
@@ -72,28 +105,25 @@ export async function POST() {
     importance: randomInt(1, 10),
 
     perception: randomItem([...perceptions]),
-    emotions: ['Focused'],
-    physicalSensations: [],
+    emotions: randomSubset([...EMOTIONS], 3), // 0..3 emotions
+    physicalSensations: randomSubset([...PHYSICAL_SENSATIONS], 3), // 0..3 sensations
     tags: [batchTag, parentTag],
     images: [],
-    category: 'Demo',
+    category: randomItem([...CATEGORIES]),
     verificationStatus: 'Pending',
 
     occurredAt: randomDateWithinLastYear(),
   }))
 
-  // Chunk to keep queries snappy & avoid parameter limits
   for (const c of chunk(parentsData, 500)) {
     await prisma.event.createMany({ data: c })
   }
 
-  // Fetch parent IDs back (createMany doesn't return IDs)
   const parentEvents = await prisma.event.findMany({
     where: {
       userId: user.id,
       isDemo: true,
       tags: { has: batchTag },
-      // ensure we only pull parents
       parentEventId: null,
     },
     select: { id: true },
@@ -114,11 +144,11 @@ export async function POST() {
       importance: randomInt(1, 10),
 
       perception: randomItem([...perceptions]),
-      emotions: [],
-      physicalSensations: [],
+      emotions: randomSubset([...EMOTIONS], 3),
+      physicalSensations: randomSubset([...PHYSICAL_SENSATIONS], 3),
       tags: [batchTag, subTag],
       images: [],
-      category: 'Demo',
+      category: randomItem([...CATEGORIES]),
       verificationStatus: 'Pending',
 
       occurredAt: randomDateWithinLastYear(),
@@ -164,7 +194,6 @@ export async function POST() {
     })),
   )
 
-  // 11k rows: chunk into ~1000 per query for speed/stability
   for (const c of chunk(logicRows, 1000)) {
     await prisma.logic.createMany({ data: c })
   }
