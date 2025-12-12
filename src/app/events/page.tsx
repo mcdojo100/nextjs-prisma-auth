@@ -34,6 +34,7 @@ export default async function EventsPage() {
       userId: true,
       parentEventId: true,
       perception: true,
+      occurredAt: true,
     },
   })
 

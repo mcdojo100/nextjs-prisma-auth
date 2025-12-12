@@ -99,7 +99,9 @@ export default function EventHeaderCard({ event }: Props) {
 
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
             <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-              {event.createdAt ? new Date(event.createdAt).toLocaleString() : ''}
+              {(event as any).occurredAt
+                ? new Date((event as any).occurredAt).toLocaleString()
+                : ''}
             </Typography>
           </Box>
 

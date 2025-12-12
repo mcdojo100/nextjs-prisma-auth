@@ -236,7 +236,9 @@ export default function SubEventWorkspace({ eventId, subEvents }: Props) {
 
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                         <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                          {new Date(s.createdAt).toLocaleString()}
+                          {(s as any).occurredAt
+                            ? new Date((s as any).occurredAt).toLocaleString()
+                            : ''}
                         </Typography>
                       </Box>
 

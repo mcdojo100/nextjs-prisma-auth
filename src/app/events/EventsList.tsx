@@ -182,7 +182,9 @@ export default function EventsList({ events }: EventsListProps) {
 
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                         <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                          {new Date(event.createdAt).toLocaleString()}
+                          {(event as any).occurredAt
+                            ? new Date((event as any).occurredAt).toLocaleString()
+                            : ''}
                         </Typography>
                       </Box>
                     </Box>

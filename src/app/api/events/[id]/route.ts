@@ -8,13 +8,24 @@ type RouteContext = {
   params: Promise<{ id: string }>
 }
 
+function parseDateLike(input: unknown): Date | null {
+  if (input == null) return null
+  if (input instanceof Date) {
+    return Number.isNaN(input.getTime()) ? null : input
+  }
+  if (typeof input === 'string' || typeof input === 'number') {
+    const d = new Date(input)
+    return Number.isNaN(d.getTime()) ? null : d
+  }
+  return null
+}
+
 export async function PUT(req: NextRequest, context: RouteContext) {
   const session = await getServerSession(authOptions)
   if (!session?.user?.id) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  // ✅ unwrap params
   const { id } = await context.params
 
   if (!id) {
@@ -31,17 +42,34 @@ export async function PUT(req: NextRequest, context: RouteContext) {
     emotions,
     physicalSensations,
     category,
-    verificationStatus, // ⭐ NEW
+    verificationStatus,
     tags,
     images,
     parentEventId,
+    // ✅ NEW (accept correct + common-typo)
+    occurredAt,
+    // Accept client typo `occuredAt` too
+    occuredAt: _occuredAt,
   } = payload
 
   if (!title || typeof intensity !== 'number' || typeof importance !== 'number') {
     return NextResponse.json({ error: 'Invalid data' }, { status: 400 })
   }
 
-  // optional type check for the new field
+  // ✅ Validate occurredAt (only if provided). Accept either spelling.
+  let occurredAtDate: Date | undefined = undefined
+  const inputOccurred = occurredAt !== undefined ? occurredAt : (_occuredAt as unknown)
+  if (inputOccurred !== undefined) {
+    const parsed = parseDateLike(inputOccurred)
+    if (!parsed) {
+      return NextResponse.json(
+        { error: 'occurredAt must be a valid date/time (ISO string recommended)' },
+        { status: 400 },
+      )
+    }
+    occurredAtDate = parsed
+  }
+
   if (verificationStatus !== undefined && typeof verificationStatus !== 'string') {
     return NextResponse.json(
       { error: 'verificationStatus must be a string if provided' },
@@ -49,12 +77,10 @@ export async function PUT(req: NextRequest, context: RouteContext) {
     )
   }
 
-  // optional type check for perception
   if (perception !== undefined && typeof perception !== 'string') {
     return NextResponse.json({ error: 'perception must be a string if provided' }, { status: 400 })
   }
 
-  // ensure event exists and belongs to this user
   const existing = await db.event.findUnique({ where: { id } })
   if (!existing) {
     return NextResponse.json({ error: 'Not found' }, { status: 404 })
@@ -69,7 +95,6 @@ export async function PUT(req: NextRequest, context: RouteContext) {
     if (Array.isArray(tags)) {
       safeTags = Array.from(new Set(tags.map((t: any) => String(t).toLowerCase()).filter(Boolean)))
     } else {
-      // If tags provided but not an array, ignore and keep existing tags.
       safeTags = existing.tags
     }
   }
@@ -84,7 +109,7 @@ export async function PUT(req: NextRequest, context: RouteContext) {
     }
   }
 
-  // If parentEventId provided, validate parent exists, belongs to user, and is not the event itself
+  // Parent validation (unchanged)
   if (parentEventId !== undefined && parentEventId !== null) {
     if (parentEventId === id) {
       return NextResponse.json({ error: 'An event cannot be its own parent' }, { status: 400 })
@@ -97,9 +122,6 @@ export async function PUT(req: NextRequest, context: RouteContext) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Prevent circular parent relationships (A -> ... -> A)
-    // Walk up the parent chain from the proposed parent and ensure we never reach the current event `id`.
-    // Limit traversal to a sane number to avoid pathological loops.
     let ancestorId: string | null = parentEvent.parentEventId ?? null
     const MAX_CHAIN = 100
     let steps = 0
@@ -110,7 +132,6 @@ export async function PUT(req: NextRequest, context: RouteContext) {
           { status: 400 },
         )
       }
-      // fetch the next parent in the chain
       const next = await db.event.findUnique({ where: { id: ancestorId } })
       if (!next) break
       ancestorId = next.parentEventId ?? null
@@ -135,20 +156,21 @@ export async function PUT(req: NextRequest, context: RouteContext) {
         tags: safeTags,
         images: safeImages,
         category: category ?? null,
-        // allow updating the parent relationship when provided; if omitted, keep existing
+
         parentEventId:
           parentEventId === undefined ? existing.parentEventId : (parentEventId ?? null),
-        // ⭐ Only update verificationStatus if a valid string was provided;
-        // otherwise keep the existing value.
+
         verificationStatus:
           typeof verificationStatus === 'string' ? verificationStatus : existing.verificationStatus,
+
+        // ✅ Only update occurredAt if provided; otherwise keep existing
+        occurredAt: occurredAtDate ?? (existing as any).occurredAt ?? existing.createdAt,
       },
     })
 
     return NextResponse.json(updated)
   } catch (err: any) {
     console.error('Error updating event:', err)
-    // If the DB schema is not migrated, provide a helpful error message to the caller
     return NextResponse.json(
       { error: 'Failed to update event', details: String(err?.message ?? err) },
       { status: 500 },
@@ -162,7 +184,6 @@ export async function DELETE(req: NextRequest, context: RouteContext) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  // ✅ unwrap params here too
   const { id } = await context.params
 
   if (!id) {
