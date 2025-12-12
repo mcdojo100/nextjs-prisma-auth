@@ -214,14 +214,31 @@ export default function ActivityClient({ initialEvents }: Props) {
         </Stack>
       </Drawer>
 
-      {/* Add Event (uses your existing EventForm UX) */}
-      {addOpen ? (
-        <EventForm
-          initialOccurredAt={addPrefillDate}
-          onSuccess={() => setAddOpen(false)}
-          onCancel={() => setAddOpen(false)}
-        />
-      ) : null}
+      {/* Add Event (Dialog) */}
+      <Dialog
+        open={addOpen}
+        onClose={() => setAddOpen(false)}
+        fullWidth
+        maxWidth="sm"
+        PaperProps={{
+          sx: { height: '80vh', maxHeight: '80vh', display: 'flex', flexDirection: 'column' },
+        }}
+      >
+        <DialogTitle>New Event</DialogTitle>
+        <DialogContent dividers sx={{ overflowY: 'auto', flex: 1 }}>
+          <EventForm
+            initialOccurredAt={addPrefillDate}
+            onSuccess={() => setAddOpen(false)}
+            onCancel={() => setAddOpen(false)}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setAddOpen(false)}>Cancel</Button>
+          <Button type="submit" form="event-form" variant="contained">
+            Create Event
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       {/* Edit existing event dialog */}
       <Dialog
