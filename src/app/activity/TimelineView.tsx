@@ -45,18 +45,6 @@ export default function TimelineView({
 }: Props) {
   return (
     <Stack spacing={2}>
-      {/* Filter is controlled at the ActivityClient level; show current mode */}
-      <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ gap: 1 }}>
-        <Box />
-        <Typography variant="caption" sx={{ opacity: 0.7 }}>
-          {filter === 'all'
-            ? 'Showing all events'
-            : filter === 'parents'
-              ? 'Showing parent events'
-              : 'Showing sub-events'}
-        </Typography>
-      </Stack>
-
       {groupedByDay.map(([dayKey, items]) => (
         <Box key={dayKey}>
           <Stack
@@ -75,10 +63,6 @@ export default function TimelineView({
             <Typography variant="subtitle1" fontWeight={700}>
               {dayjs(dayKey).format('dddd, MMM D')}
             </Typography>
-
-            <Button size="small" startIcon={<AddIcon />} onClick={() => onAddForDay(dayKey)}>
-              Add
-            </Button>
           </Stack>
 
           <Stack spacing={1}>
