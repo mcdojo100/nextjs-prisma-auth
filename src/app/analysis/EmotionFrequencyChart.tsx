@@ -1,15 +1,7 @@
 'use client'
 
 import React, { useEffect, useState } from 'react'
-import {
-  Box,
-  Typography,
-  CircularProgress,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-} from '@mui/material'
+import { Box, Typography, CircularProgress } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import {
   ResponsiveContainer,
@@ -24,8 +16,9 @@ import {
 
 type Point = { emotion: string; count: number }
 
-export default function EmotionFrequencyChart() {
-  const [range, setRange] = useState<'7' | '30' | 'month' | 'all'>('30')
+type Props = { range?: '7' | '30' | 'month' | 'all' }
+
+export default function EmotionFrequencyChart({ range = '30' }: Props) {
   const [data, setData] = useState<Point[] | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -55,23 +48,8 @@ export default function EmotionFrequencyChart() {
 
   return (
     <Box sx={{ pt: 2, pb: 2, px: 0 }}>
-      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
+      <Box sx={{ mb: 1 }}>
         <Typography variant="h6">Emotion Frequency</Typography>
-
-        <FormControl size="small" sx={{ minWidth: 160 }}>
-          <InputLabel id="efc-range-label">Time range</InputLabel>
-          <Select
-            labelId="efc-range-label"
-            value={range}
-            label="Time range"
-            onChange={(e) => setRange(e.target.value as any)}
-          >
-            <MenuItem value={'7'}>7 days</MenuItem>
-            <MenuItem value={'30'}>30 days</MenuItem>
-            <MenuItem value={'month'}>This Month</MenuItem>
-            <MenuItem value={'all'}>All Time</MenuItem>
-          </Select>
-        </FormControl>
       </Box>
 
       {loading ? (

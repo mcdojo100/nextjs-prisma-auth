@@ -10,9 +10,31 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
+  const url = new URL(req.url)
+  const range = url.searchParams.get('range') ?? '30'
+
+  function parseRange(range?: string) {
+    if (!range || range === 'all') return null
+    if (range === 'month') {
+      const now = new Date()
+      return new Date(now.getFullYear(), now.getMonth(), 1)
+    }
+    const days = Number(range)
+    if (Number.isNaN(days) || days <= 0) return null
+    const cutoff = new Date()
+    cutoff.setDate(cutoff.getDate() - days + 1)
+    cutoff.setHours(0, 0, 0, 0)
+    return cutoff
+  }
+
+  const cutoff = parseRange(range)
+
   // Fetch events for the current user (occurredAt, importance, intensity)
   const events = await db.event.findMany({
-    where: { userId: session.user.id },
+    where: {
+      userId: session.user.id,
+      ...(cutoff ? { occurredAt: { gte: cutoff } } : {}),
+    },
     select: { occurredAt: true, importance: true, intensity: true },
   })
 

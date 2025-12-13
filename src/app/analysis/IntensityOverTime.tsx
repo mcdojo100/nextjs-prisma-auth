@@ -16,7 +16,9 @@ import {
 
 type Point = { date: string; avgIntensity: number; count: number }
 
-export default function IntensityOverTime() {
+type Props = { range?: '7' | '30' | 'month' | 'all' }
+
+export default function IntensityOverTime({ range = '30' }: Props) {
   const [data, setData] = useState<Point[] | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -25,7 +27,7 @@ export default function IntensityOverTime() {
     let mounted = true
     ;(async () => {
       try {
-        const res = await fetch('/api/events/summary')
+        const res = await fetch(`/api/events/summary?range=${range}`)
         if (!res.ok) throw new Error('Failed to load summary')
         const json = await res.json()
         if (!mounted) return
@@ -39,7 +41,7 @@ export default function IntensityOverTime() {
     return () => {
       mounted = false
     }
-  }, [])
+  }, [range])
 
   if (loading)
     return (
