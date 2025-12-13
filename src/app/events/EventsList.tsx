@@ -19,6 +19,8 @@ import {
   Button,
   Menu,
   MenuItem,
+  ToggleButton,
+  ToggleButtonGroup,
 } from '@mui/material'
 import type { Event as PrismaEvent } from '@prisma/client'
 import Link from 'next/link'
@@ -147,22 +149,41 @@ export default function EventsList({
   return (
     <>
       {/* Sort / Filter controls (Filter on the left, then Sort) */}
-      <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 1, gap: 0.5 }}>
-        <TagFilter
-          events={events}
-          selectedTags={selectedTags}
-          onChange={setSelectedTags}
-          filter={filter}
-          onFilterChange={onFilterChange}
-        />
+      <Box
+        sx={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          mb: 1,
+          gap: 0.5,
+          alignItems: 'center',
+        }}
+      >
+        <Box>
+          {onFilterChange && (
+            <ToggleButtonGroup
+              exclusive
+              size="small"
+              value={filter}
+              onChange={(_, v) => v && onFilterChange(v)}
+            >
+              <ToggleButton value="all">All</ToggleButton>
+              <ToggleButton value="parents">Parents</ToggleButton>
+              <ToggleButton value="subs">Sub-Events</ToggleButton>
+            </ToggleButtonGroup>
+          )}
+        </Box>
 
-        <Button
-          size="small"
-          startIcon={<SortIcon />}
-          onClick={() => setSortOrder((s) => (s === 'desc' ? 'asc' : 'desc'))}
-        >
-          Sort: {sortOrder === 'desc' ? 'Newest' : 'Oldest'}
-        </Button>
+        <Box sx={{ display: 'flex', gap: 0.5, alignItems: 'center' }}>
+          <TagFilter events={events} selectedTags={selectedTags} onChange={setSelectedTags} />
+
+          <Button
+            size="small"
+            startIcon={<SortIcon />}
+            onClick={() => setSortOrder((s) => (s === 'desc' ? 'asc' : 'desc'))}
+          >
+            Sort: {sortOrder === 'desc' ? 'Newest' : 'Oldest'}
+          </Button>
+        </Box>
       </Box>
       <Stack spacing={1.5}>
         {displayEvents.map((event) => {

@@ -1,5 +1,5 @@
 // src/app/activity/page.tsx
-import { Box, Typography } from '@mui/material'
+import { Box } from '@mui/material'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { redirect } from 'next/navigation'
@@ -28,15 +28,12 @@ export default async function ActivityPage() {
       occurredAt: true,
       intensity: true,
       parentEventId: true,
+      tags: true,
     },
   })
 
   return (
     <Box sx={{ mt: 2 }}>
-      <Typography variant="h4" sx={{ mb: 2 }}>
-        Activity
-      </Typography>
-
       <ActivityClient initialEvents={events} />
     </Box>
   )

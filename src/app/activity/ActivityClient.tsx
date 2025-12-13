@@ -56,6 +56,7 @@ export default function ActivityClient({ initialEvents }: Props) {
 
   // Timeline filter state
   const [timelineFilter, setTimelineFilter] = useState<TimelineFilter>('all')
+  const [selectedTags, setSelectedTags] = useState<string[]>([])
 
   const events = useMemo(() => {
     return initialEvents.map((e) => ({
@@ -64,13 +65,21 @@ export default function ActivityClient({ initialEvents }: Props) {
     }))
   }, [initialEvents])
 
-  // --- Timeline grouping (with filter applied) ---
+  // --- Filtered events (All / Parents / Sub-Events) ---
   const filteredEventsAll = useMemo(() => {
-    if (timelineFilter === 'all') return events
-    if (timelineFilter === 'parents') return events.filter((e) => !e.parentEventId)
-    return events.filter((e) => !!e.parentEventId)
-  }, [events, timelineFilter])
+    let base =
+      timelineFilter === 'all'
+        ? events
+        : timelineFilter === 'parents'
+          ? events.filter((e) => !e.parentEventId)
+          : events.filter((e) => !!e.parentEventId)
 
+    if (selectedTags.length === 0) return base
+
+    return base.filter((e) => (e as any).tags?.some((t: string) => selectedTags.includes(t)))
+  }, [events, timelineFilter, selectedTags])
+
+  // --- Timeline grouping ---
   const groupedByDay = useMemo(() => {
     const map = new Map<string, LiteEvent[]>()
     for (const e of filteredEventsAll) {
@@ -122,9 +131,24 @@ export default function ActivityClient({ initialEvents }: Props) {
 
   return (
     <Box>
-      {/* Top controls */}
-      <Stack spacing={1} sx={{ mb: 2 }}>
-        {/* First row: view toggle only */}
+      {/* ===== Top controls (hierarchy) ===== */}
+      <Stack spacing={1.25} sx={{ mb: 2 }}>
+        {/* Row 1: Title + Primary CTA */}
+        <Stack direction="row" justifyContent="space-between" alignItems="center">
+          <Typography variant="h4" sx={{ m: 0 }}>
+            Activity
+          </Typography>
+
+          <Button
+            variant="contained"
+            startIcon={<AddIcon />}
+            onClick={() => openAddForDate(new Date())}
+          >
+            Add event
+          </Button>
+        </Stack>
+
+        {/* Row 2: View mode (Calendar / Timeline) */}
         <Stack direction="row" justifyContent="flex-start" alignItems="center">
           <ToggleButtonGroup
             exclusive
@@ -137,28 +161,40 @@ export default function ActivityClient({ initialEvents }: Props) {
           </ToggleButtonGroup>
         </Stack>
 
-        {/* Second row: right-aligned controls (filter next to Add button) */}
-        <Stack direction="row" justifyContent="space-between" alignItems="center">
-          <Box />
+        {/* Row 3: Dataset scope + filters (secondary) */}
+        <Stack
+          direction={{ xs: 'column', sm: 'row' }}
+          justifyContent="space-between"
+          alignItems={{ xs: 'stretch', sm: 'center' }}
+          spacing={1}
+        >
+          <ToggleButtonGroup
+            exclusive
+            size="small"
+            value={timelineFilter}
+            onChange={(_, v) => v && setTimelineFilter(v)}
+            sx={{
+              '& .MuiToggleButton-root': {
+                textTransform: 'none',
+              },
+            }}
+          >
+            <ToggleButton value="all">All</ToggleButton>
+            <ToggleButton value="parents">Parents</ToggleButton>
+            <ToggleButton value="subs">Sub-Events</ToggleButton>
+          </ToggleButtonGroup>
 
-          <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+          <Box sx={{ display: 'flex', justifyContent: { xs: 'flex-start', sm: 'flex-end' } }}>
             <TagFilter
               events={events as any}
-              filter={timelineFilter}
-              onFilterChange={setTimelineFilter}
+              selectedTags={selectedTags}
+              onChange={setSelectedTags}
             />
-
-            <Button
-              variant="contained"
-              startIcon={<AddIcon />}
-              onClick={() => openAddForDate(new Date())}
-            >
-              Add event
-            </Button>
           </Box>
         </Stack>
       </Stack>
 
+      {/* ===== Views ===== */}
       {view === 'timeline' ? (
         <TimelineView
           groupedByDay={groupedByDay}
@@ -185,7 +221,7 @@ export default function ActivityClient({ initialEvents }: Props) {
         />
       )}
 
-      {/* Day drawer (calendar click) */}
+      {/* ===== Day drawer ===== */}
       <Drawer
         anchor="right"
         open={dayDrawerOpen}
@@ -243,7 +279,7 @@ export default function ActivityClient({ initialEvents }: Props) {
         </Stack>
       </Drawer>
 
-      {/* Add Event (Dialog) */}
+      {/* ===== Add Event ===== */}
       <Dialog
         open={addOpen}
         onClose={() => setAddOpen(false)}
@@ -269,7 +305,7 @@ export default function ActivityClient({ initialEvents }: Props) {
         </DialogActions>
       </Dialog>
 
-      {/* Edit existing event dialog */}
+      {/* ===== Edit Event ===== */}
       <Dialog
         open={editOpen}
         onClose={() => setEditOpen(false)}
