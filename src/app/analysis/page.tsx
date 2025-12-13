@@ -118,6 +118,9 @@ export default function AnalysisPage() {
       </Box>
 
       {/* Stats row */}
+      <Box sx={{ mb: 1, display: 'flex', justifyContent: 'flex-start' }}>
+        <Typography variant="h6">Summary</Typography>
+      </Box>
       <Box sx={{ mb: 3 }}>
         <Paper elevation={1} sx={{ p: 1, px: 2 }}>
           <Box
