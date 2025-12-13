@@ -13,10 +13,25 @@ import {
   Tooltip,
   Label,
 } from 'recharts'
+import ChartCard from './ChartCard'
 
 type Point = { emotion: string; count: number }
-
 type Props = { range?: '7' | '30' | 'month' | 'all' }
+
+function rangeLabel(range: Props['range']) {
+  switch (range) {
+    case '7':
+      return 'Last 7 days'
+    case '30':
+      return 'Last 30 days'
+    case 'month':
+      return 'This month'
+    case 'all':
+      return 'All time'
+    default:
+      return 'Last 30 days'
+  }
+}
 
 export default function EmotionFrequencyChart({ range = '30' }: Props) {
   const [data, setData] = useState<Point[] | null>(null)
@@ -36,44 +51,30 @@ export default function EmotionFrequencyChart({ range = '30' }: Props) {
         if (!mounted) return
         setData(json as Point[])
       } catch (err: any) {
+        if (!mounted) return
         setError(err?.message ?? String(err))
       } finally {
         if (mounted) setLoading(false)
       }
     })()
+
     return () => {
       mounted = false
     }
   }, [range])
 
   return (
-    <Box sx={{ pt: 2, pb: 2, px: 0 }}>
-      <Box sx={{ mb: 1 }}>
-        <Typography variant="h6">Emotion Frequency</Typography>
-      </Box>
-
+    <ChartCard title="Emotion Frequency" subtitle={`Emotion count • ${rangeLabel(range)}`}>
       {loading ? (
-        <Box
-          sx={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            p: 2,
-            height: 320,
-          }}
-        >
+        <Box sx={{ display: 'grid', placeItems: 'center', height: 320 }}>
           <CircularProgress />
         </Box>
       ) : error ? (
-        <Box sx={{ p: 2 }}>
-          <Typography color="error">{error}</Typography>
-        </Box>
+        <Typography color="error">{error}</Typography>
       ) : !data || data.length === 0 ? (
-        <Box sx={{ p: 2 }}>
-          <Typography variant="body2" color="text.secondary">
-            No emotions found for the selected range.
-          </Typography>
-        </Box>
+        <Typography variant="body2" sx={{ opacity: 0.75 }}>
+          No emotions found for the selected range.
+        </Typography>
       ) : (
         <ResponsiveContainer width="100%" height={320}>
           <BarChart data={data} margin={{ top: 10, right: 20, left: 0, bottom: 40 }}>
@@ -91,16 +92,17 @@ export default function EmotionFrequencyChart({ range = '30' }: Props) {
                 style={{ textAnchor: 'middle' }}
               />
             </YAxis>
+
             <Tooltip
-              cursor={{ fill: 'rgba(255, 255, 255, 0.1)' }}
+              cursor={{ fill: 'rgba(255, 255, 255, 0.08)' }}
               content={<CustomChartTooltip />}
-              formatter={(value) => [value, 'Count']}
             />
-            <Bar dataKey="count" fill={theme.palette.primary.main} />
+
+            <Bar dataKey="count" fill={theme.palette.primary.main} radius={[4, 4, 0, 0]} />
           </BarChart>
         </ResponsiveContainer>
       )}
-    </Box>
+    </ChartCard>
   )
 }
 
@@ -116,16 +118,18 @@ function CustomChartTooltip(props: any) {
     <Box
       sx={{
         backgroundColor: theme.palette.background.paper,
-        borderRadius: 1,
-        boxShadow: 3,
+        border: '1px solid',
+        borderColor: 'divider',
+        borderRadius: 2,
+        boxShadow: 6,
         p: 1,
         minWidth: 140,
       }}
     >
-      <Typography variant="caption" sx={{ color: theme.palette.text.primary, display: 'block' }}>
+      <Typography variant="caption" sx={{ display: 'block', opacity: 0.8 }}>
         {label}
       </Typography>
-      <Typography variant="body2" sx={{ color: theme.palette.text.secondary }}>
+      <Typography variant="body2" sx={{ fontWeight: 700 }}>
         Count: {point?.value}
       </Typography>
     </Box>

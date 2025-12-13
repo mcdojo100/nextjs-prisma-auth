@@ -1,3 +1,4 @@
+// src/app/analysis/IntensityOverTime.tsx
 'use client'
 
 import React, { useEffect, useState } from 'react'
@@ -13,10 +14,25 @@ import {
   Tooltip,
   Label,
 } from 'recharts'
+import ChartCard from './ChartCard'
 
 type Point = { date: string; avgIntensity: number; count: number }
-
 type Props = { range?: '7' | '30' | 'month' | 'all' }
+
+function rangeLabel(range: Props['range']) {
+  switch (range) {
+    case '7':
+      return 'Last 7 days'
+    case '30':
+      return 'Last 30 days'
+    case 'month':
+      return 'This month'
+    case 'all':
+      return 'All time'
+    default:
+      return 'Last 30 days'
+  }
+}
 
 export default function IntensityOverTime({ range = '30' }: Props) {
   const [data, setData] = useState<Point[] | null>(null)
@@ -25,6 +41,8 @@ export default function IntensityOverTime({ range = '30' }: Props) {
 
   useEffect(() => {
     let mounted = true
+    setLoading(true)
+    setError(null)
     ;(async () => {
       try {
         const res = await fetch(`/api/events/summary?range=${range}`)
@@ -33,92 +51,66 @@ export default function IntensityOverTime({ range = '30' }: Props) {
         if (!mounted) return
         setData(json as Point[])
       } catch (err: any) {
+        if (!mounted) return
         setError(err?.message ?? String(err))
       } finally {
         if (mounted) setLoading(false)
       }
     })()
+
     return () => {
       mounted = false
     }
   }, [range])
 
-  if (loading)
-    return (
-      <Box sx={{ pt: 2, pb: 2, px: 0 }}>
-        <Typography variant="h6" sx={{ mb: 1 }}>
-          Intensity Over Time
-        </Typography>
-        <Box
-          sx={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            p: 2,
-            height: 300,
-          }}
-        >
+  return (
+    <ChartCard
+      title="Intensity Over Time"
+      subtitle={`Avg intensity per day • ${rangeLabel(range)}`}
+    >
+      {loading ? (
+        <Box sx={{ display: 'grid', placeItems: 'center', height: 300 }}>
           <CircularProgress />
         </Box>
-      </Box>
-    )
-
-  if (error)
-    return (
-      <Box sx={{ p: 2 }}>
+      ) : error ? (
         <Typography color="error">{error}</Typography>
-      </Box>
-    )
-
-  if (!data || data.length === 0)
-    return (
-      <Box sx={{ p: 2 }}>
-        <Typography variant="h6">Intensity Over Time</Typography>
-        <Typography variant="body2" color="text.secondary">
+      ) : !data || data.length === 0 ? (
+        <Typography variant="body2" sx={{ opacity: 0.75 }}>
           No events found to display.
         </Typography>
-      </Box>
-    )
-
-  return (
-    <Box sx={{ pt: 2, pb: 2, px: 0 }}>
-      <Typography variant="h6" sx={{ mb: 1 }}>
-        Intensity Over Time
-      </Typography>
-      <ResponsiveContainer width="100%" height={300}>
-        <LineChart data={data} margin={{ top: 10, right: 20, left: 0, bottom: 40 }}>
-          <CartesianGrid strokeDasharray="3 3" />
-          <XAxis
-            dataKey="date"
-            tick={{ fontSize: 12 }}
-            tickFormatter={(d) => String(d).slice(5)}
-            interval={'preserveStartEnd'}
-          >
-            <Label value="Date" position="bottom" offset={10} />
-          </XAxis>
-          <YAxis domain={[1, 10]} allowDecimals>
-            <Label
-              value="Avg intensity"
-              angle={-90}
-              position="insideLeft"
-              style={{ textAnchor: 'middle' }}
+      ) : (
+        <ResponsiveContainer width="100%" height={300}>
+          <LineChart data={data} margin={{ top: 10, right: 20, left: 0, bottom: 40 }}>
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis
+              dataKey="date"
+              tick={{ fontSize: 12 }}
+              tickFormatter={(d) => String(d).slice(5)}
+              interval="preserveStartEnd"
+            >
+              <Label value="Date" position="bottom" offset={10} />
+            </XAxis>
+            <YAxis domain={[1, 10]} allowDecimals>
+              <Label
+                value="Avg intensity"
+                angle={-90}
+                position="insideLeft"
+                style={{ textAnchor: 'middle' }}
+              />
+            </YAxis>
+            <Tooltip content={<CustomChartTooltip />} />
+            <Line
+              type="monotone"
+              dataKey="avgIntensity"
+              stroke="#d32f2f"
+              strokeWidth={2}
+              dot={{ r: 3 }}
+              activeDot={{ r: 5 }}
             />
-          </YAxis>
-          <Tooltip
-            content={<CustomChartTooltip />}
-            formatter={(value: any) => [value, 'Avg intensity']}
-          />
-          <Line
-            type="monotone"
-            dataKey="avgIntensity"
-            stroke="#d32f2f"
-            strokeWidth={2}
-            dot={{ r: 3 }}
-            activeDot={{ r: 5 }}
-          />
-        </LineChart>
-      </ResponsiveContainer>
-    </Box>
+          </LineChart>
+        </ResponsiveContainer>
+      )}
+    </ChartCard>
   )
 }
 
@@ -129,28 +121,31 @@ function CustomChartTooltip(props: any) {
   if (!active || !payload || !payload.length) return null
 
   const point = payload[0]
+  const count = point?.payload?.count
 
   return (
     <Box
       sx={{
         backgroundColor: theme.palette.background.paper,
-        borderRadius: 1,
-        boxShadow: 3,
+        border: '1px solid',
+        borderColor: 'divider',
+        borderRadius: 2,
+        boxShadow: 6,
         p: 1,
-        minWidth: 140,
+        minWidth: 160,
       }}
     >
-      <Typography variant="caption" sx={{ color: theme.palette.text.primary, display: 'block' }}>
+      <Typography variant="caption" sx={{ display: 'block', opacity: 0.8 }}>
         {label}
       </Typography>
-      <Typography variant="body2" sx={{ color: theme.palette.text.secondary }}>
+      <Typography variant="body2" sx={{ fontWeight: 700 }}>
         Avg intensity: {point?.value}
       </Typography>
-      {point?.payload?.count !== undefined && (
-        <Typography variant="body2" sx={{ color: theme.palette.text.secondary }}>
-          Count: {point.payload.count}
+      {count !== undefined ? (
+        <Typography variant="body2" sx={{ opacity: 0.8 }}>
+          Count: {count}
         </Typography>
-      )}
+      ) : null}
     </Box>
   )
 }
