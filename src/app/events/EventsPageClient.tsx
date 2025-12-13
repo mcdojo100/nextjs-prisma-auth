@@ -33,12 +33,15 @@ export default function EventsPageClient({ events }: EventsPageClientProps) {
       {/* Title + Create button row */}
       <Box sx={{ mb: 3 }}>
         <Stack
-          direction={{ xs: 'column', sm: 'row' }}
+          direction="row"
           spacing={2}
           alignItems="center"
           justifyContent="space-between"
+          sx={{ width: '100%' }}
         >
-          <Typography variant="h4">Events</Typography>
+          <Typography variant="h4" sx={{ textAlign: 'left' }}>
+            Events
+          </Typography>
 
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
             <Button

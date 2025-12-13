@@ -149,16 +149,13 @@ export default function EventsList({
   return (
     <>
       {/* Sort / Filter controls (Filter on the left, then Sort) */}
-      <Box
-        sx={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          mb: 1,
-          gap: 0.5,
-          alignItems: 'center',
-        }}
+      <Stack
+        direction={{ xs: 'column', sm: 'row' }}
+        justifyContent="space-between"
+        spacing={1}
+        sx={{ mb: 1 }}
       >
-        <Box>
+        <Box sx={{ width: { xs: '100%', sm: 'auto' } }}>
           {onFilterChange && (
             <ToggleButtonGroup
               exclusive
@@ -173,7 +170,7 @@ export default function EventsList({
           )}
         </Box>
 
-        <Box sx={{ display: 'flex', gap: 0.5, alignItems: 'center' }}>
+        <Box sx={{ display: 'flex', gap: 0.5, alignItems: 'center', justifyContent: 'flex-end' }}>
           <TagFilter events={events} selectedTags={selectedTags} onChange={setSelectedTags} />
 
           <Button
@@ -184,7 +181,7 @@ export default function EventsList({
             Sort: {sortOrder === 'desc' ? 'Newest' : 'Oldest'}
           </Button>
         </Box>
-      </Box>
+      </Stack>
       <Stack spacing={1.5}>
         {displayEvents.map((event) => {
           const perception = (event as any).perception ?? 'Neutral'
