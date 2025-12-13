@@ -30,6 +30,8 @@ import SortIcon from '@mui/icons-material/Sort'
 
 type EventsListProps = {
   events: PrismaEvent[]
+  filter?: 'all' | 'parents' | 'subs'
+  onFilterChange?: (f: 'all' | 'parents' | 'subs') => void
 }
 
 type DeleteTarget = {
@@ -37,7 +39,11 @@ type DeleteTarget = {
   title: string
 }
 
-export default function EventsList({ events }: EventsListProps) {
+export default function EventsList({
+  events,
+  filter = 'parents',
+  onFilterChange,
+}: EventsListProps) {
   const router = useRouter()
 
   const [deleteTarget, setDeleteTarget] = useState<DeleteTarget | null>(null)
@@ -127,10 +133,13 @@ export default function EventsList({ events }: EventsListProps) {
     ? sortedEvents.filter((e) => (e as any).tags?.some((t: string) => selectedTags.includes(t)))
     : sortedEvents
 
-  // Only show parent events (those without a parentEventId)
-  const parentEvents = filteredEvents.filter(
-    (e) => e.parentEventId === null || e.parentEventId === undefined,
-  )
+  // Apply the parents/subs/all filter
+  const displayEvents =
+    filter === 'all'
+      ? filteredEvents
+      : filter === 'parents'
+        ? filteredEvents.filter((e) => e.parentEventId === null || e.parentEventId === undefined)
+        : filteredEvents.filter((e) => e.parentEventId !== null && e.parentEventId !== undefined)
 
   // don't early-return here; always render the controls row below and
   // show a message when there are no parent events after filtering.
@@ -139,7 +148,13 @@ export default function EventsList({ events }: EventsListProps) {
     <>
       {/* Sort / Filter controls (Filter on the left, then Sort) */}
       <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 1, gap: 0.5 }}>
-        <TagFilter events={events} selectedTags={selectedTags} onChange={setSelectedTags} />
+        <TagFilter
+          events={events}
+          selectedTags={selectedTags}
+          onChange={setSelectedTags}
+          filter={filter}
+          onFilterChange={onFilterChange}
+        />
 
         <Button
           size="small"
@@ -150,7 +165,7 @@ export default function EventsList({ events }: EventsListProps) {
         </Button>
       </Box>
       <Stack spacing={1.5}>
-        {parentEvents.map((event) => {
+        {displayEvents.map((event) => {
           const perception = (event as any).perception ?? 'Neutral'
           const cardBorderColor =
             perception === 'Positive'

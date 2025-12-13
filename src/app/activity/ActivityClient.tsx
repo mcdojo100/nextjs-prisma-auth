@@ -7,8 +7,6 @@ import {
   Drawer,
   IconButton,
   Stack,
-  ToggleButton,
-  ToggleButtonGroup,
   Typography,
   Card,
   CardActionArea,
@@ -17,6 +15,8 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
+  ToggleButtonGroup,
+  ToggleButton,
 } from '@mui/material'
 import AddIcon from '@mui/icons-material/Add'
 import CloseIcon from '@mui/icons-material/Close'
@@ -26,6 +26,7 @@ import { useMemo, useState } from 'react'
 import EventForm from '../events/EventForm'
 import CalendarView from './CalendarView'
 import TimelineView, { LiteEvent, TimelineFilter } from './TimelineView'
+import TagFilter from '../events/TagFilter'
 
 type Props = {
   initialEvents: LiteEvent[]
@@ -64,16 +65,15 @@ export default function ActivityClient({ initialEvents }: Props) {
   }, [initialEvents])
 
   // --- Timeline grouping (with filter applied) ---
-  const groupedByDay = useMemo(() => {
-    const filtered =
-      timelineFilter === 'all'
-        ? events
-        : timelineFilter === 'parents'
-          ? events.filter((e) => !e.parentEventId)
-          : events.filter((e) => !!e.parentEventId)
+  const filteredEventsAll = useMemo(() => {
+    if (timelineFilter === 'all') return events
+    if (timelineFilter === 'parents') return events.filter((e) => !e.parentEventId)
+    return events.filter((e) => !!e.parentEventId)
+  }, [events, timelineFilter])
 
+  const groupedByDay = useMemo(() => {
     const map = new Map<string, LiteEvent[]>()
-    for (const e of filtered) {
+    for (const e of filteredEventsAll) {
       const key = dayjs(e.occurredAt).format('YYYY-MM-DD')
       if (!map.has(key)) map.set(key, [])
       map.get(key)!.push(e)
@@ -85,7 +85,7 @@ export default function ActivityClient({ initialEvents }: Props) {
     }
 
     return Array.from(map.entries()).sort((a, b) => (a[0] < b[0] ? 1 : -1))
-  }, [events, timelineFilter])
+  }, [filteredEventsAll])
 
   // --- Calendar intensity counts for the displayed month ---
   const monthCounts = useMemo(() => {
@@ -93,7 +93,7 @@ export default function ActivityClient({ initialEvents }: Props) {
     const end = month.endOf('month')
     const counts = new Map<string, number>()
 
-    for (const e of events) {
+    for (const e of filteredEventsAll) {
       const d = dayjs(e.occurredAt)
       if (d.isBefore(start, 'day') || d.isAfter(end, 'day')) continue
       const key = toDayKey(d)
@@ -101,14 +101,14 @@ export default function ActivityClient({ initialEvents }: Props) {
     }
 
     return counts
-  }, [events, month])
+  }, [filteredEventsAll, month])
 
   const selectedDayEvents = useMemo(() => {
     if (!selectedDayKey) return []
-    return events
+    return filteredEventsAll
       .filter((e) => dayjs(e.occurredAt).format('YYYY-MM-DD') === selectedDayKey)
       .sort((a, b) => +new Date(b.occurredAt as any) - +new Date(a.occurredAt as any))
-  }, [events, selectedDayKey])
+  }, [filteredEventsAll, selectedDayKey])
 
   function openAddForDate(date: Date) {
     setAddPrefillDate(date)
@@ -123,19 +123,40 @@ export default function ActivityClient({ initialEvents }: Props) {
   return (
     <Box>
       {/* Top controls */}
-      <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
-        <ToggleButtonGroup exclusive value={view} onChange={(_, v) => v && setView(v)} size="small">
-          <ToggleButton value="calendar">Calendar</ToggleButton>
-          <ToggleButton value="timeline">Timeline</ToggleButton>
-        </ToggleButtonGroup>
+      <Stack spacing={1} sx={{ mb: 2 }}>
+        {/* First row: view toggle only */}
+        <Stack direction="row" justifyContent="flex-start" alignItems="center">
+          <ToggleButtonGroup
+            exclusive
+            value={view}
+            onChange={(_, v) => v && setView(v)}
+            size="small"
+          >
+            <ToggleButton value="calendar">Calendar</ToggleButton>
+            <ToggleButton value="timeline">Timeline</ToggleButton>
+          </ToggleButtonGroup>
+        </Stack>
 
-        <Button
-          variant="contained"
-          startIcon={<AddIcon />}
-          onClick={() => openAddForDate(new Date())}
-        >
-          Add event
-        </Button>
+        {/* Second row: right-aligned controls (filter next to Add button) */}
+        <Stack direction="row" justifyContent="space-between" alignItems="center">
+          <Box />
+
+          <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+            <TagFilter
+              events={events as any}
+              filter={timelineFilter}
+              onFilterChange={setTimelineFilter}
+            />
+
+            <Button
+              variant="contained"
+              startIcon={<AddIcon />}
+              onClick={() => openAddForDate(new Date())}
+            >
+              Add event
+            </Button>
+          </Box>
+        </Stack>
       </Stack>
 
       {view === 'timeline' ? (

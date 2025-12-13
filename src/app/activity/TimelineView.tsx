@@ -45,19 +45,9 @@ export default function TimelineView({
 }: Props) {
   return (
     <Stack spacing={2}>
-      {/* Quick filters */}
+      {/* Filter is controlled at the ActivityClient level; show current mode */}
       <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ gap: 1 }}>
-        <ToggleButtonGroup
-          exclusive
-          size="small"
-          value={filter}
-          onChange={(_, v) => v && onChangeFilter(v)}
-        >
-          <ToggleButton value="all">All</ToggleButton>
-          <ToggleButton value="parents">Parents</ToggleButton>
-          <ToggleButton value="subs">Sub-events</ToggleButton>
-        </ToggleButtonGroup>
-
+        <Box />
         <Typography variant="caption" sx={{ opacity: 0.7 }}>
           {filter === 'all'
             ? 'Showing all events'

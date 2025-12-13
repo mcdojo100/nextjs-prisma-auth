@@ -1,7 +1,7 @@
 // src/app/events/EventsPageClient.tsx
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import {
   Box,
   Typography,
@@ -14,6 +14,7 @@ import {
 } from '@mui/material'
 import type { Event as PrismaEvent } from '@prisma/client'
 import EventsList from './EventsList'
+/* TagFilter removed from header; EventsList renders the filter control */
 import EventForm from './EventForm'
 
 type EventsPageClientProps = {
@@ -22,15 +23,7 @@ type EventsPageClientProps = {
 
 export default function EventsPageClient({ events }: EventsPageClientProps) {
   const [openCreate, setOpenCreate] = useState(false)
-  const [selectedTags, setSelectedTags] = useState<string[]>([])
-  const uniqueTags = useMemo(() => {
-    const s = new Set<string>()
-    for (const e of events) {
-      const tags = (e as any).tags
-      if (Array.isArray(tags)) tags.forEach((t) => s.add(t))
-    }
-    return Array.from(s).sort()
-  }, [events])
+  const [filter, setFilter] = useState<'all' | 'parents' | 'subs'>('all')
 
   const handleOpenCreate = () => setOpenCreate(true)
   const handleCloseCreate = () => setOpenCreate(false)
@@ -47,7 +40,7 @@ export default function EventsPageClient({ events }: EventsPageClientProps) {
         >
           <Typography variant="h4">Events</Typography>
 
-          <Box>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
             <Button
               variant="contained"
               size="small"
@@ -61,7 +54,7 @@ export default function EventsPageClient({ events }: EventsPageClientProps) {
       </Box>
 
       {/* Events list */}
-      <EventsList events={events} />
+      <EventsList events={events} filter={filter} onFilterChange={setFilter} />
 
       {/* Create Event modal */}
       <Dialog
